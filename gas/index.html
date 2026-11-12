@@ -1,0 +1,1779 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Terex Playa D - Gestión de Contenedores</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0b1117;
+      --bg-card: #151e27;
+      --bg-card-hover: #1c2834;
+      --border-subtle: #233140;
+      --border-focus: #14b8a6;
+      --teal-primary: #14b8a6;
+      --teal-glow: rgba(20, 184, 166, 0.25);
+      --amber-alert: #f59e0b;
+      --red-alert: #ef4444;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --font-display: 'Chakra Petch', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-body: 'Inter', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    /* HEADER INDUSTRIAL */
+    header {
+      background-color: #0f1722;
+      border-bottom: 2px solid var(--border-subtle);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      background: linear-gradient(135deg, #14b8a6, #0d9488);
+      color: #000;
+      font-weight: 900;
+      font-family: var(--font-display);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 1.1rem;
+      letter-spacing: 1px;
+      box-shadow: 0 0 15px var(--teal-glow);
+    }
+
+    .brand-title {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge-terminal {
+      background: rgba(20, 184, 166, 0.15);
+      color: var(--teal-primary);
+      border: 1px solid var(--teal-primary);
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+    }
+
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .status-pill {
+      background: #151e27;
+      border: 1px solid var(--border-subtle);
+      padding: 6px 12px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    /* PESTAÑAS PRINCIPALES (Grandes, mínimo 52px para touch) */
+    nav.main-tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      background: #090e13;
+      border-bottom: 2px solid var(--border-subtle);
+    }
+
+    .tab-btn {
+      height: 56px;
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      color: var(--text-muted);
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      background: rgba(20, 184, 166, 0.05);
+      color: var(--text-main);
+    }
+
+    .tab-btn.active {
+      color: var(--teal-primary);
+      border-bottom-color: var(--teal-primary);
+      background: rgba(20, 184, 166, 0.1);
+    }
+
+    /* CONTENEDOR PRINCIPAL */
+    main {
+      flex: 1;
+      padding: 18px 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* TARJETAS INDUSTRIALES */
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      color: var(--text-main);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* FORMULARIO OPERACIÓN */
+    .iso-input-container {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .iso-input-wrapper {
+      flex: 1;
+      min-width: 280px;
+      position: relative;
+    }
+
+    .iso-input {
+      width: 100%;
+      height: 56px;
+      background: #0b1117;
+      border: 2px solid var(--border-subtle);
+      border-radius: 8px;
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 0 16px;
+      transition: border-color 0.2s;
+    }
+
+    .iso-input:focus {
+      outline: none;
+      border-color: var(--teal-primary);
+      box-shadow: 0 0 12px var(--teal-glow);
+    }
+
+    .btn-ocr {
+      height: 56px;
+      padding: 0 20px;
+      background: #1e293b;
+      border: 2px solid var(--teal-primary);
+      color: var(--teal-primary);
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-ocr:hover {
+      background: var(--teal-primary);
+      color: #000;
+      box-shadow: 0 0 15px var(--teal-glow);
+    }
+
+    /* BADGE VALIDACIÓN ISO */
+    .iso-validation-banner {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 18px;
+      font-size: 0.95rem;
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .iso-valid {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid #10b981;
+      color: #34d399;
+    }
+
+    .iso-warning {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid var(--amber-alert);
+      color: #fbbf24;
+    }
+
+    .iso-info {
+      background: #0f1722;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+    }
+
+    /* MODO AUTOMÁTICO ALERTA */
+    .mode-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px;
+      border-radius: 8px;
+      margin-bottom: 18px;
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .mode-ingreso {
+      background: rgba(20, 184, 166, 0.12);
+      border: 1px solid var(--teal-primary);
+      color: var(--teal-primary);
+    }
+
+    .mode-retiro {
+      background: rgba(239, 68, 68, 0.15);
+      border: 2px solid var(--red-alert);
+      color: #fca5a5;
+    }
+
+    /* SELECTORES DE CALLE Y FILA (BOTONES TÁCTILES GRANDES) */
+    .selector-label {
+      font-family: var(--font-display);
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .street-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .street-btn {
+      height: 54px;
+      background: #0f1722;
+      border: 2px solid var(--border-subtle);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .street-btn.active {
+      background: var(--teal-primary);
+      color: #000;
+      border-color: var(--teal-primary);
+      box-shadow: 0 0 14px var(--teal-glow);
+    }
+
+    .row-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .row-btn {
+      height: 60px;
+      background: #0f1722;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: var(--text-main);
+    }
+
+    .row-btn:hover {
+      background: var(--bg-card-hover);
+    }
+
+    .row-btn.active {
+      border: 2px solid var(--teal-primary);
+      background: rgba(20, 184, 166, 0.2);
+    }
+
+    .row-btn.full {
+      opacity: 0.45;
+      border-color: var(--red-alert);
+      cursor: not-allowed;
+    }
+
+    .row-name {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .row-badge {
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: var(--teal-primary);
+      font-weight: 600;
+    }
+
+    .row-btn.full .row-badge {
+      color: var(--red-alert);
+    }
+
+    /* ASIGNACIÓN DE NIVEL AUTOMÁTICO */
+    .level-summary-box {
+      background: #0f1722;
+      border: 1px solid var(--border-subtle);
+      border-left: 4px solid var(--teal-primary);
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .level-assigned-title {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .level-assigned-value {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--teal-primary);
+    }
+
+    /* BOTONES DE ACCIÓN PRINCIPALES */
+    .action-btn {
+      width: 100%;
+      height: 56px;
+      border: none;
+      border-radius: 8px;
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.2s;
+    }
+
+    .action-btn-ingreso {
+      background: #14b8a6;
+      color: #000;
+      box-shadow: 0 4px 15px var(--teal-glow);
+    }
+
+    .action-btn-ingreso:hover {
+      background: #0d9488;
+    }
+
+    .action-btn-retiro {
+      background: #ef4444;
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+    }
+
+    .action-btn-retiro:hover {
+      background: #dc2626;
+    }
+
+    .action-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* MAPA VISUAL DE PLAYA D */
+    .map-streets-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+    }
+
+    .street-column {
+      background: #101720;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 14px;
+    }
+
+    .street-header {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--teal-primary);
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .map-row-card {
+      background: #151e27;
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .map-row-card:hover {
+      border-color: var(--teal-primary);
+      background: #1c2834;
+      transform: translateX(2px);
+    }
+
+    .map-row-identity {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .map-row-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .stack-visual-bars {
+      display: flex;
+      gap: 3px;
+      align-items: flex-end;
+      height: 22px;
+    }
+
+    .stack-bar-slot {
+      width: 8px;
+      height: 100%;
+      background: #090e13;
+      border-radius: 2px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column-reverse;
+    }
+
+    .stack-bar-fill {
+      width: 100%;
+      background: var(--teal-primary);
+      transition: height 0.3s;
+    }
+
+    .stack-bar-fill.full {
+      background: var(--amber-alert);
+    }
+
+    /* MODAL DE CORTE TRANSVERSAL DE ESTIBA (Nivel 5 a Nivel 1) */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 1000;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+      animation: fadeIn 0.15s ease;
+    }
+
+    .modal-content {
+      background: var(--bg-card);
+      border: 2px solid var(--border-subtle);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 650px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    .modal-header {
+      background: #0f1722;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .btn-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 4px 8px;
+    }
+
+    .btn-close:hover {
+      color: #fff;
+    }
+
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    /* PILA DE ESTIBA VERTICAL (5 a 1) */
+    .tier-stack-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .tier-card {
+      background: #0f1722;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .tier-card.occupied {
+      border-left: 5px solid var(--teal-primary);
+      background: #141f2b;
+    }
+
+    .tier-card.empty {
+      border: 1px dashed #2a3746;
+      opacity: 0.5;
+    }
+
+    .tier-number-tag {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.1rem;
+      min-width: 75px;
+      color: var(--teal-primary);
+    }
+
+    .tier-card.empty .tier-number-tag {
+      color: var(--text-muted);
+    }
+
+    .tier-info {
+      flex: 1;
+      padding: 0 14px;
+    }
+
+    .tier-code {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: #fff;
+    }
+
+    .tier-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .btn-withdraw-small {
+      height: 40px;
+      padding: 0 14px;
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid var(--red-alert);
+      color: #fca5a5;
+      font-family: var(--font-display);
+      font-weight: 700;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-withdraw-small:hover {
+      background: var(--red-alert);
+      color: #fff;
+    }
+
+    /* HISTORIAL & AUDITORÍA */
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    .history-table th {
+      background: #0f1722;
+      color: var(--teal-primary);
+      font-family: var(--font-display);
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 2px solid var(--border-subtle);
+    }
+
+    .history-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      font-family: var(--font-mono);
+    }
+
+    .history-type-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .type-ingreso { background: rgba(20, 184, 166, 0.2); color: #2dd4bf; }
+    .type-retiro { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+    .type-reacomod { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+
+    /* TECLADO TÁCTIL EN PANTALLA (Para cabina) */
+    .virtual-keypad {
+      background: #090e13;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 6px;
+    }
+
+    .vk-btn {
+      height: 48px;
+      background: #151e27;
+      border: 1px solid var(--border-subtle);
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 1.1rem;
+      font-weight: 700;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .vk-btn:active {
+      background: var(--teal-primary);
+      color: #000;
+    }
+
+    .vk-btn.wide {
+      grid-column: span 2;
+    }
+
+    .vk-btn.action {
+      background: #1f2937;
+      color: var(--teal-primary);
+    }
+
+    /* TOAST INDUSTRIAL */
+    #toastContainer {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      background: #151e27;
+      border-left: 4px solid var(--teal-primary);
+      color: #fff;
+      padding: 14px 20px;
+      border-radius: 6px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      animation: slideIn 0.2s ease;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(50px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER INDUSTRIAL -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">TEREX</div>
+      <div>
+        <div class="brand-title">
+          PLAYA D
+          <span class="badge-terminal">REACH STACKER TFC 45H</span>
+        </div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">
+          CABINA TÁCTIL 10" · ESTIBAS HASTA NIVEL 5
+        </div>
+      </div>
+    </div>
+    <div class="header-status">
+      <div class="status-pill">
+        <span class="status-dot"></span>
+        <span id="headerClock">--:--:--</span>
+      </div>
+      <div class="status-pill">
+        <span>OCUPACIÓN:</span>
+        <strong id="headerOccupancy" style="color: var(--teal-primary);">0 / 300 TEU</strong>
+      </div>
+    </div>
+  </header>
+
+  <!-- NAVEGACIÓN 4 PESTAÑAS (TOUCH >= 52px) -->
+  <nav class="main-tabs">
+    <button class="tab-btn active" onclick="switchTab('operacion')">
+      ⚡ OPERACIÓN TEREX
+    </button>
+    <button class="tab-btn" onclick="switchTab('mapa')">
+      🗺️ MAPA PLAYA D
+    </button>
+    <button class="tab-btn" onclick="switchTab('buscador')">
+      🔍 BUSCADOR
+    </button>
+    <button class="tab-btn" onclick="switchTab('historial')">
+      📋 HISTORIAL
+    </button>
+  </nav>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main>
+
+    <!-- PESTAÑA 1: OPERACIÓN TEREX (INGRESOS Y RETIROS RÁPIDOS) -->
+    <div id="tab-operacion" class="tab-panel active">
+      <div class="card">
+        <div class="card-title">
+          <span>IDENTIFICACIÓN DEL CONTENEDOR</span>
+          <span id="modeBadge" class="history-type-badge type-ingreso">MODO: INGRESO</span>
+        </div>
+
+        <div class="iso-input-container">
+          <div class="iso-input-wrapper">
+            <input 
+              type="text" 
+              id="isoInput" 
+              class="iso-input" 
+              placeholder="EJ: MSKU8291034" 
+              maxlength="11" 
+              autocomplete="off"
+              oninput="handleIsoInput(this.value)"
+            />
+          </div>
+          <button class="btn-ocr" onclick="simulateOcrScan()">
+            📷 ESCANEAR OCR
+          </button>
+        </div>
+
+        <!-- VALIDACIÓN ISO 6346 EN TIEMPO REAL -->
+        <div id="isoValidationBox" class="iso-validation-banner iso-info">
+          Ingrese el código ISO de 11 caracteres (4 letras + 7 números).
+        </div>
+
+        <!-- MODO DETECCIÓN INTELIGENTE (RETIRO O INGRESO) -->
+        <div id="modeAlertBox" style="display: none;"></div>
+
+        <!-- SELECTOR DE CALLE -->
+        <div id="placementSection">
+          <div class="selector-label">1. SELECCIONAR CALLE OPERATIVA</div>
+          <div class="street-grid">
+            <button class="street-btn active" onclick="selectStreet('C-01')">C-01</button>
+            <button class="street-btn" onclick="selectStreet('C-02')">C-02</button>
+            <button class="street-btn" onclick="selectStreet('C-03')">C-03</button>
+            <button class="street-btn" onclick="selectStreet('C-04')">C-04</button>
+          </div>
+
+          <!-- SELECTOR DE FILA CON OCUPACIÓN ACTUAL (Ej: 2/5) -->
+          <div class="selector-label">2. SELECCIONAR FILA (OCUPACIÓN ACTUAL / 5)</div>
+          <div id="rowGridContainer" class="row-grid">
+            <!-- Se llena dinámicamente -->
+          </div>
+
+          <!-- ASIGNACIÓN AUTOMÁTICA DE NIVEL CORRELATIVO -->
+          <div class="level-summary-box">
+            <div>
+              <div class="level-assigned-title">Cálculo de Estiba Automático (Terex)</div>
+              <div style="font-size: 0.95rem; color: #fff; margin-top: 4px;">
+                Ubicación destino: <strong id="assignedLocationPreview">C-01 / F-01</strong>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <div class="level-assigned-title">NIVEL ASIGNADO</div>
+              <div id="assignedLevelDisplay" class="level-assigned-value">NIVEL 1</div>
+            </div>
+          </div>
+
+          <!-- DATOS ADICIONALES RÁPIDOS -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px;">
+            <div>
+              <label class="selector-label">TIPO CONTENEDOR</label>
+              <select id="tipoInput" class="iso-input" style="height: 48px; font-size: 1rem; font-family: var(--font-body);">
+                <option value="40' HC">40' HC (High Cube)</option>
+                <option value="20' DC">20' DC (Dry Cargo)</option>
+                <option value="40' DC">40' DC (Dry Cargo)</option>
+                <option value="40' Reefer">40' Reefer</option>
+                <option value="20' Open Top">20' Open Top</option>
+              </select>
+            </div>
+            <div>
+              <label class="selector-label">LÍNEA NAVIERA</label>
+              <select id="navieraInput" class="iso-input" style="height: 48px; font-size: 1rem; font-family: var(--font-body);">
+                <option value="MSC">MSC</option>
+                <option value="Maersk">Maersk</option>
+                <option value="CMA CGM">CMA CGM</option>
+                <option value="Hapag-Lloyd">Hapag-Lloyd</option>
+                <option value="Cosco">Cosco</option>
+                <option value="ONE">ONE</option>
+                <option value="Otra">Otra</option>
+              </select>
+            </div>
+            <div>
+              <label class="selector-label">OBSERVACIONES / TARA</label>
+              <input type="text" id="obsInput" class="iso-input" placeholder="Opcional..." style="height: 48px; font-size: 0.95rem; font-family: var(--font-body);" />
+            </div>
+          </div>
+        </div>
+
+        <!-- BOTÓN DE ACCIÓN PRINCIPAL (GRANDE TOUCH) -->
+        <button id="btnMainAction" class="action-btn action-btn-ingreso" onclick="handleMainAction()">
+          ⬇️ CONFIRMAR INGRESO EN PLAYA D
+        </button>
+
+      </div>
+    </div>
+
+    <!-- PESTAÑA 2: MAPA PLAYA D (4 CALLES, 15 FILAS, 5 NIVELES) -->
+    <div id="tab-mapa" class="tab-panel">
+      <div class="card" style="margin-bottom: 14px;">
+        <div class="card-title">
+          <span>VISTA AÉREA Y APILAMIENTO EN PLAYA D</span>
+          <span style="font-size: 0.85rem; color: var(--text-muted); font-family: var(--font-mono);">
+            Hacé clic en cualquier fila para abrir el corte vertical (Nivel 5 a Nivel 1)
+          </span>
+        </div>
+      </div>
+      <div id="mapContainer" class="map-streets-container">
+        <!-- Renderizado dinámico de las 4 calles -->
+      </div>
+    </div>
+
+    <!-- PESTAÑA 3: BUSCADOR POR CÓDIGO ISO -->
+    <div id="tab-buscador" class="tab-panel">
+      <div class="card">
+        <div class="card-title">BÚSQUEDA INSTANTÁNEA POR CÓDIGO ISO</div>
+        <input 
+          type="text" 
+          id="searchIsoInput" 
+          class="iso-input" 
+          placeholder="Escribí código ISO (ej: MSKU...)" 
+          oninput="renderSearchResults(this.value)"
+        />
+        <div id="searchResultsList" style="margin-top: 18px;">
+          <!-- Resultados dinámicos -->
+        </div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 4: HISTORIAL Y AUDITORÍA -->
+    <div id="tab-historial" class="tab-panel">
+      <div class="card">
+        <div class="card-title">
+          <span>AUDITORÍA DE MOVIMIENTOS Y REACOMODAMIENTOS</span>
+          <button class="btn-ocr" style="height: 38px; font-size: 0.8rem;" onclick="clearHistoryConfirm()">
+            LIMPIAR HISTORIAL
+          </button>
+        </div>
+        <div style="overflow-x: auto;">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>FECHA / HORA</th>
+                <th>OPERACIÓN</th>
+                <th>CONTENEDOR</th>
+                <th>UBICACIÓN</th>
+                <th>ORIGEN ➔ DESTINO</th>
+                <th>MOTIVO / DETALLE</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody">
+              <!-- Filas de movimientos -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- MODAL DE CORTE TRANSVERSAL DE ESTIBA (NIVEL 5 AL 1) -->
+  <div id="stackModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title" id="modalStackTitle">ESTIBA C-01 / F-01</div>
+        <button class="btn-close" onclick="closeStackModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom: 12px; font-size: 0.85rem; color: var(--text-muted); font-family: var(--font-mono);">
+          CORTE VERTICAL OPERATIVO · CABINA TEREX
+        </div>
+        <div id="modalStackList" class="tier-stack-list">
+          <!-- Renderizado de Nivel 5 a Nivel 1 -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toastContainer"></div>
+
+  <script>
+    // ESTADO LOCAL DE LA APLICACIÓN
+    const CALLES = ['C-01', 'C-02', 'C-03', 'C-04'];
+    const FILAS_POR_CALLE = 15;
+    const ALTURA_MAXIMA = 5;
+
+    let selectedStreet = 'C-01';
+    let selectedRow = 'F-01';
+    let currentMode = 'INGRESO'; // 'INGRESO' o 'RETIRO'
+    let currentDetectedContainer = null;
+
+    // BASE DE DATOS EN MEMORIA / LOCALSTORAGE CON FALLBACK
+    let appState = {
+      contenedores: [],
+      movimientos: []
+    };
+
+    // VALORES DE LETRAS ISO 6346 (Sin múltiplos de 11)
+    const ISO_LETTER_VALUES = {
+      A: 10, B: 12, C: 13, D: 14, E: 15, F: 16, G: 17, H: 18, I: 19, J: 20,
+      K: 21, L: 23, M: 24, N: 25, O: 26, P: 27, Q: 28, R: 29, S: 30, T: 31,
+      U: 32, V: 34, W: 35, X: 36, Y: 37, Z: 38
+    };
+
+    // CÁLCULO MATEMÁTICO DÍGITO VERIFICADOR ISO 6346
+    function calculateIsoCheckDigit(first10) {
+      if (!first10 || first10.length < 10) return -1;
+      const str = first10.toUpperCase().slice(0, 10);
+      let sum = 0;
+      for (let i = 0; i < 10; i++) {
+        const c = str[i];
+        let val = 0;
+        if (c >= '0' && c <= '9') {
+          val = parseInt(c, 10);
+        } else if (ISO_LETTER_VALUES[c] !== undefined) {
+          val = ISO_LETTER_VALUES[c];
+        } else {
+          return -1;
+        }
+        sum += val * Math.pow(2, i);
+      }
+      const remainder = sum % 11;
+      return remainder === 10 ? 0 : remainder;
+    }
+
+    function validateIsoCode(code) {
+      const clean = (code || '').trim().toUpperCase();
+      if (clean.length < 10) {
+        return { isValid: false, expected: -1, actual: null, complete: false, msg: 'Ingrese código (11 caracteres)' };
+      }
+      const expected = calculateIsoCheckDigit(clean.slice(0, 10));
+      if (clean.length === 10) {
+        return { isValid: false, expected: expected, actual: null, complete: false, msg: 'Falta dígito verificador. Esperado: [' + expected + ']' };
+      }
+      const actual = parseInt(clean[10], 10);
+      const ok = actual === expected;
+      return {
+        isValid: ok,
+        expected: expected,
+        actual: actual,
+        complete: true,
+        msg: ok ? 'Dígito verificador VÁLIDO [' + actual + '] (ISO 6346 OK)' : 'Dígito NO coincide: Esperado [' + expected + '], Ingresado [' + actual + ']'
+      };
+    }
+
+    // INICIALIZACIÓN
+    window.addEventListener('DOMContentLoaded', function() {
+      cargarDatosIniciales();
+      actualizarReloj();
+      setInterval(actualizarReloj, 1000);
+      renderRowSelector();
+      actualizarAsignacionNivel();
+      renderMapa();
+      renderHistorial();
+    });
+
+    function actualizarReloj() {
+      const now = new Date();
+      document.getElementById('headerClock').innerText = now.toLocaleTimeString();
+    }
+
+    // NAVEGACIÓN ENTRE PESTAÑAS
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(function(btn, i) {
+        btn.classList.remove('active');
+      });
+      document.querySelectorAll('.tab-panel').forEach(function(panel) {
+        panel.classList.remove('active');
+      });
+
+      const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(function(b) {
+        return b.getAttribute('onclick').includes(tabId);
+      });
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const targetPanel = document.getElementById('tab-' + tabId);
+      if (targetPanel) {
+        targetPanel.classList.add('active');
+        if (tabId === 'mapa') renderMapa();
+        if (tabId === 'historial') renderHistorial();
+      }
+    }
+
+    // MANEJO DE INPUT ISO EN TIEMPO REAL
+    function handleIsoInput(val) {
+      const clean = (val || '').trim().toUpperCase();
+      const validationBox = document.getElementById('isoValidationBox');
+      const valResult = validateIsoCode(clean);
+
+      if (!clean) {
+        validationBox.className = 'iso-validation-banner iso-info';
+        validationBox.innerHTML = 'Ingrese el código ISO de 11 caracteres (4 letras + 7 números).';
+        setModoIngreso();
+        return;
+      }
+
+      if (valResult.isValid) {
+        validationBox.className = 'iso-validation-banner iso-valid';
+        validationBox.innerHTML = '✔️ ' + valResult.msg;
+      } else if (valResult.complete && !valResult.isValid) {
+        validationBox.className = 'iso-validation-banner iso-warning';
+        validationBox.innerHTML = '⚠️ ' + valResult.msg + ' <em>(Se permite continuar)</em>';
+      } else {
+        validationBox.className = 'iso-validation-banner iso-info';
+        validationBox.innerHTML = valResult.msg;
+      }
+
+      // REGLA CRÍTICA 2: DETECCIÓN INTELIGENTE
+      // Si el código YA existe activo en Playa D -> cambiar automáticamente a RETIRO
+      const found = appState.contenedores.find(function(c) {
+        return c.codigoISO.toUpperCase() === clean && c.estado === 'DEPOSITADO';
+      });
+
+      if (found) {
+        setModoRetiro(found);
+      } else {
+        setModoIngreso();
+      }
+    }
+
+    function setModoRetiro(container) {
+      currentMode = 'RETIRO';
+      currentDetectedContainer = container;
+
+      const badge = document.getElementById('modeBadge');
+      badge.className = 'history-type-badge type-retiro';
+      badge.innerText = 'MODO: RETIRO (LOCALIZADO)';
+
+      const alertBox = document.getElementById('modeAlertBox');
+      alertBox.style.display = 'block';
+      alertBox.innerHTML = `
+        <div class="mode-indicator mode-retiro">
+          <div>
+            ⚠️ CONTENEDOR ENCONTRADO EN PLAYA D: <strong>${container.codigoISO}</strong><br>
+            <span style="font-size: 0.95rem; font-family: var(--font-mono);">
+              UBICACIÓN: ${container.calle} · ${container.fila} · NIVEL ${container.nivel}
+            </span>
+          </div>
+          <div>ESTIBA ACTIVA</div>
+        </div>
+      `;
+
+      // Ocultar selector de ubicación porque ya está definida
+      document.getElementById('placementSection').style.display = 'none';
+
+      // Configurar botón principal a retiro
+      const btn = document.getElementById('btnMainAction');
+      btn.className = 'action-btn action-btn-retiro';
+      btn.innerHTML = `🚨 CONFIRMAR RETIRO DE ${container.codigoISO} (NIVEL ${container.nivel})`;
+      btn.disabled = false;
+    }
+
+    function setModoIngreso() {
+      currentMode = 'INGRESO';
+      currentDetectedContainer = null;
+
+      const badge = document.getElementById('modeBadge');
+      badge.className = 'history-type-badge type-ingreso';
+      badge.innerText = 'MODO: INGRESO';
+
+      document.getElementById('modeAlertBox').style.display = 'none';
+      document.getElementById('placementSection').style.display = 'block';
+
+      const btn = document.getElementById('btnMainAction');
+      btn.className = 'action-btn action-btn-ingreso';
+      btn.innerHTML = '⬇️ CONFIRMAR INGRESO EN PLAYA D';
+
+      actualizarAsignacionNivel();
+    }
+
+    function selectStreet(street) {
+      selectedStreet = street;
+      document.querySelectorAll('.street-btn').forEach(function(b) {
+        b.classList.remove('active');
+        if (b.innerText === street) b.classList.add('active');
+      });
+      renderRowSelector();
+      actualizarAsignacionNivel();
+    }
+
+    function selectRow(row) {
+      selectedRow = row;
+      document.querySelectorAll('.row-btn').forEach(function(b) {
+        b.classList.remove('active');
+      });
+      const activeBtn = document.getElementById('row-btn-' + row);
+      if (activeBtn) activeBtn.classList.add('active');
+      actualizarAsignacionNivel();
+    }
+
+    function renderRowSelector() {
+      const container = document.getElementById('rowGridContainer');
+      container.innerHTML = '';
+
+      for (let i = 1; i <= FILAS_POR_CALLE; i++) {
+        const rowName = 'F-' + (i < 10 ? '0' + i : i);
+        const count = appState.contenedores.filter(function(c) {
+          return c.calle === selectedStreet && c.fila === rowName && c.estado === 'DEPOSITADO';
+        }).length;
+
+        const isFull = count >= ALTURA_MAXIMA;
+        const isSelected = rowName === selectedRow;
+
+        const btn = document.createElement('div');
+        btn.id = 'row-btn-' + rowName;
+        btn.className = 'row-btn ' + (isSelected ? 'active ' : '') + (isFull ? 'full' : '');
+        btn.onclick = function() {
+          if (!isFull) selectRow(rowName);
+          else showToast('La fila ' + rowName + ' está LLENA (5/5).');
+        };
+
+        btn.innerHTML = `
+          <div class="row-name">${rowName}</div>
+          <div class="row-badge">${count}/${ALTURA_MAXIMA} ${isFull ? 'LLENA' : ''}</div>
+        `;
+        container.appendChild(btn);
+      }
+    }
+
+    function actualizarAsignacionNivel() {
+      if (currentMode !== 'INGRESO') return;
+
+      const count = appState.contenedores.filter(function(c) {
+        return c.calle === selectedStreet && c.fila === selectedRow && c.estado === 'DEPOSITADO';
+      }).length;
+
+      const previewLoc = document.getElementById('assignedLocationPreview');
+      const previewLvl = document.getElementById('assignedLevelDisplay');
+      const actionBtn = document.getElementById('btnMainAction');
+
+      previewLoc.innerText = selectedStreet + ' / ' + selectedRow;
+
+      if (count >= ALTURA_MAXIMA) {
+        previewLvl.innerText = 'FILA LLENA (5/5)';
+        previewLvl.style.color = 'var(--red-alert)';
+        actionBtn.disabled = true;
+        actionBtn.innerText = '❌ FILA COMPLETA - SELECCIONÁ OTRA';
+      } else {
+        const nextLevel = count + 1;
+        previewLvl.innerText = 'NIVEL ' + nextLevel + ' (' + (nextLevel === 1 ? 'PISO' : 'SOBRE N-' + count) + ')';
+        previewLvl.style.color = 'var(--teal-primary)';
+        actionBtn.disabled = false;
+        actionBtn.innerText = '⬇️ CONFIRMAR INGRESO EN ' + selectedStreet + ' / ' + selectedRow + ' (NIVEL ' + nextLevel + ')';
+      }
+    }
+
+    // ACCIÓN PRINCIPAL (INGRESO O RETIRO)
+    function handleMainAction() {
+      const iso = (document.getElementById('isoInput').value || '').trim().toUpperCase();
+      if (!iso) {
+        showToast('Ingrese un código ISO antes de continuar.');
+        return;
+      }
+
+      if (currentMode === 'INGRESO') {
+        ejecutarIngreso(iso);
+      } else {
+        ejecutarRetiro(iso);
+      }
+    }
+
+    function ejecutarIngreso(iso) {
+      // Validar si existe en memoria
+      const exists = appState.contenedores.find(function(c) {
+        return c.codigoISO === iso && c.estado === 'DEPOSITADO';
+      });
+      if (exists) {
+        showToast('El contenedor ya está activo en ' + exists.calle + ' / ' + exists.fila);
+        return;
+      }
+
+      const count = appState.contenedores.filter(function(c) {
+        return c.calle === selectedStreet && c.fila === selectedRow && c.estado === 'DEPOSITADO';
+      }).length;
+
+      if (count >= ALTURA_MAXIMA) {
+        showToast('La fila ' + selectedRow + ' está completa.');
+        return;
+      }
+
+      const assignedLevel = count + 1;
+      const now = new Date();
+
+      const newContainer = {
+        codigoISO: iso,
+        calle: selectedStreet,
+        fila: selectedRow,
+        nivel: assignedLevel,
+        tipo: document.getElementById('tipoInput').value,
+        naviera: document.getElementById('navieraInput').value,
+        tara: 3800,
+        estado: 'DEPOSITADO',
+        fechaIngreso: now.toISOString(),
+        observaciones: document.getElementById('obsInput').value || 'Operación Terex',
+        operador: 'TEREX-01'
+      };
+
+      const newMove = {
+        id: 'MOV-' + now.getTime(),
+        tipo: 'INGRESO',
+        codigoISO: iso,
+        calle: selectedStreet,
+        fila: selectedRow,
+        nivelOrigen: null,
+        nivelDestino: assignedLevel,
+        timestamp: now.toISOString(),
+        operador: 'TEREX-01',
+        motivo: 'Ingreso confirmado en Playa D'
+      };
+
+      // Si se ejecuta en Google Apps Script, usar google.script.run
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            showToast('✅ Ingreso sincronizado en Google Sheets: ' + iso);
+          })
+          .withFailureHandler(function(err) {
+            showToast('⚠️ Error en Google Sheets: ' + err.message);
+          })
+          .registrarIngreso({
+            codigoISO: iso,
+            calle: selectedStreet,
+            fila: selectedRow,
+            tipo: newContainer.tipo,
+            naviera: newContainer.naviera,
+            observaciones: newContainer.observaciones,
+            operador: 'TEREX-01'
+          });
+      }
+
+      // Actualizar estado local
+      appState.contenedores.push(newContainer);
+      appState.movimientos.unshift(newMove);
+      guardarEnLocalStorage();
+
+      showToast('✅ Contenedor ' + iso + ' ingresado con éxito en ' + selectedStreet + ' / ' + selectedRow + ' (Nivel ' + assignedLevel + ')');
+      
+      // Limpiar formulario
+      document.getElementById('isoInput').value = '';
+      document.getElementById('obsInput').value = '';
+      handleIsoInput('');
+      renderRowSelector();
+      actualizarAsignacionNivel();
+      renderMapa();
+    }
+
+    function ejecutarRetiro(iso) {
+      const container = appState.contenedores.find(function(c) {
+        return c.codigoISO === iso && c.estado === 'DEPOSITADO';
+      });
+
+      if (!container) {
+        showToast('El contenedor no se encuentra activo.');
+        return;
+      }
+
+      const { calle, fila, nivel: retiradoLevel } = container;
+      const now = new Date();
+
+      container.estado = 'RETIRADO';
+      container.fechaRetiro = now.toISOString();
+
+      const retiroMove = {
+        id: 'MOV-RET-' + now.getTime(),
+        tipo: 'RETIRO',
+        codigoISO: iso,
+        calle: calle,
+        fila: fila,
+        nivelOrigen: retiradoLevel,
+        nivelDestino: null,
+        timestamp: now.toISOString(),
+        operador: 'TEREX-01',
+        motivo: 'Retiro confirmado por reach stacker'
+      };
+
+      appState.movimientos.unshift(retiroMove);
+
+      // REGLA CRÍTICA 4: REACOMODAMIENTO AUTOMÁTICO POR GRAVEDAD
+      const superiores = appState.contenedores
+        .filter(function(c) {
+          return c.calle === calle && c.fila === fila && c.estado === 'DEPOSITADO' && c.nivel > retiradoLevel;
+        })
+        .sort(function(a, b) { return a.nivel - b.nivel; });
+
+      let reacomodadosCount = 0;
+      superiores.forEach(function(sup) {
+        const oldLvl = sup.nivel;
+        const newLvl = oldLvl - 1;
+        sup.nivel = newLvl;
+        reacomodadosCount++;
+
+        const reacMove = {
+          id: 'MOV-REA-' + now.getTime() + '-' + Math.floor(Math.random() * 1000),
+          tipo: 'REACOMODAMIENTO',
+          codigoISO: sup.codigoISO,
+          calle: calle,
+          fila: fila,
+          nivelOrigen: oldLvl,
+          nivelDestino: newLvl,
+          timestamp: now.toISOString(),
+          operador: 'TEREX-01',
+          motivo: 'Descenso por gravedad tras retiro de ' + iso
+        };
+        appState.movimientos.unshift(reacMove);
+      });
+
+      // Si está en Google Apps Script:
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function() {
+            showToast('✅ Retiro sincronizado en Sheets con reacomodamientos.');
+          })
+          .registrarRetiro(iso, 'Retiro desde cabina', 'TEREX-01');
+      }
+
+      guardarEnLocalStorage();
+
+      showToast('🚨 Retiro completado: ' + iso + (reacomodadosCount > 0 ? ' (' + reacomodadosCount + ' reacomodados por gravedad)' : ''));
+
+      document.getElementById('isoInput').value = '';
+      handleIsoInput('');
+      renderRowSelector();
+      renderMapa();
+    }
+
+    // SIMULADOR DE ESCANEO OCR
+    function simulateOcrScan() {
+      const samples = ['MSKU8291034', 'CMAU5482019', 'TGHU9182345', 'SUDU3281902', 'HLCU7728103', 'COSU6291040'];
+      const chosen = samples[Math.floor(Math.random() * samples.length)];
+
+      showToast('📷 Escaneando contenedor con cámara Terex OCR...');
+      setTimeout(function() {
+        document.getElementById('isoInput').value = chosen;
+        handleIsoInput(chosen);
+        showToast('🎯 OCR Detectado: ' + chosen + ' (Confianza: 99.4%)');
+      }, 700);
+    }
+
+    // RENDERIZADO DEL MAPA DE PLAYA D
+    function renderMapa() {
+      const container = document.getElementById('mapContainer');
+      container.innerHTML = '';
+
+      let totalActivos = 0;
+
+      CALLES.forEach(function(calle) {
+        const streetCard = document.createElement('div');
+        streetCard.className = 'street-column';
+
+        const activosCalle = appState.contenedores.filter(function(c) {
+          return c.calle === calle && c.estado === 'DEPOSITADO';
+        });
+        totalActivos += activosCalle.length;
+
+        streetCard.innerHTML = `
+          <div class="street-header">
+            <span>CALLE ${calle}</span>
+            <span style="font-size: 0.85rem; font-family: var(--font-mono); color: var(--text-muted);">
+              ${activosCalle.length} Contenedores
+            </span>
+          </div>
+          <div id="street-rows-${calle}"></div>
+        `;
+
+        container.appendChild(streetCard);
+
+        const rowsContainer = streetCard.querySelector('#street-rows-' + calle);
+
+        for (let i = 1; i <= FILAS_POR_CALLE; i++) {
+          const rowName = 'F-' + (i < 10 ? '0' + i : i);
+          const stack = appState.contenedores.filter(function(c) {
+            return c.calle === calle && c.fila === rowName && c.estado === 'DEPOSITADO';
+          });
+          const count = stack.length;
+
+          const rowCard = document.createElement('div');
+          rowCard.className = 'map-row-card';
+          rowCard.onclick = function() {
+            openStackModal(calle, rowName);
+          };
+
+          // Dibujar barras de visualización de niveles
+          let barsHtml = '';
+          for (let l = 1; l <= ALTURA_MAXIMA; l++) {
+            const isFilled = l <= count;
+            barsHtml += `
+              <div class="stack-bar-slot">
+                <div class="stack-bar-fill ${count === 5 ? 'full' : ''}" style="height: ${isFilled ? '100%' : '0%'}"></div>
+              </div>
+            `;
+          }
+
+          rowCard.innerHTML = `
+            <div class="map-row-identity">
+              <span class="map-row-title">${rowName}</span>
+              <span style="font-size: 0.8rem; font-family: var(--font-mono); color: ${count === 5 ? 'var(--red-alert)' : 'var(--teal-primary)'}">
+                ${count}/${ALTURA_MAXIMA} ${count === 5 ? '🔴' : ''}
+              </span>
+            </div>
+            <div class="stack-visual-bars">
+              ${barsHtml}
+            </div>
+          `;
+
+          rowsContainer.appendChild(rowCard);
+        }
+      });
+
+      document.getElementById('headerOccupancy').innerText = totalActivos + ' / 300 TEU (' + ((totalActivos / 300) * 100).toFixed(1) + '%)';
+    }
+
+    // MODAL DE CORTE TRANSVERSAL DE ESTIBA (Nivel 5 a Nivel 1)
+    function openStackModal(calle, fila) {
+      document.getElementById('modalStackTitle').innerText = 'CORTE VERTICAL: ' + calle + ' / ' + fila;
+      const list = document.getElementById('modalStackList');
+      list.innerHTML = '';
+
+      const stack = appState.contenedores.filter(function(c) {
+        return c.calle === calle && c.fila === fila && c.estado === 'DEPOSITADO';
+      });
+
+      // Renderizar de Nivel 5 (tope) a Nivel 1 (piso)
+      for (let lvl = ALTURA_MAXIMA; lvl >= 1; lvl--) {
+        const item = stack.find(function(c) { return c.nivel === lvl; });
+        const card = document.createElement('div');
+
+        if (item) {
+          card.className = 'tier-card occupied';
+          let matHtml = '';
+          if (item.materiales && item.materiales.length > 0) {
+            matHtml = '<div style="margin-top: 6px; font-size: 0.75rem; color: var(--teal-primary); font-family: var(--font-mono); display: flex; flex-wrap: wrap; gap: 4px;">' +
+              '<span style="color: var(--text-muted);">📦 ' + item.materiales.length + ' ítems:</span>';
+            item.materiales.forEach(function(m) {
+              matHtml += '<span style="background: rgba(20,184,166,0.15); padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(20,184,166,0.3);">' + m.cantidad + ' ' + m.unidad + ' ' + m.descripcion + '</span>';
+            });
+            matHtml += '</div>';
+          }
+
+          card.innerHTML = `
+            <div class="tier-number-tag">NIVEL ${lvl}</div>
+            <div class="tier-info">
+              <div class="tier-code">${item.codigoISO}</div>
+              <div class="tier-sub">${item.tipo} · ${item.naviera} · Ingresó: ${new Date(item.fechaIngreso).toLocaleDateString()}</div>
+              ${matHtml}
+            </div>
+            <button class="btn-withdraw-small" onclick="retirarDesdeModal('${item.codigoISO}')">
+              RETIRAR
+            </button>
+          `;
+        } else {
+          card.className = 'tier-card empty';
+          card.innerHTML = `
+            <div class="tier-number-tag">NIVEL ${lvl}</div>
+            <div class="tier-info">
+              <div style="font-size: 0.9rem; color: var(--text-muted); font-family: var(--font-mono);">[ ESPACIO DISPONIBLE ]</div>
+            </div>
+          `;
+        }
+
+        list.appendChild(card);
+      }
+
+      document.getElementById('stackModal').classList.add('active');
+    }
+
+    function closeStackModal() {
+      document.getElementById('stackModal').classList.remove('active');
+    }
+
+    function retirarDesdeModal(iso) {
+      closeStackModal();
+      ejecutarRetiro(iso);
+    }
+
+    // BUSCADOR INSTANTÁNEO POR CÓDIGO ISO O MATERIALES
+    function renderSearchResults(query) {
+      const list = document.getElementById('searchResultsList');
+      list.innerHTML = '';
+      const clean = (query || '').trim().toUpperCase();
+
+      if (!clean) {
+        list.innerHTML = '<div style="color: var(--text-muted); font-size: 0.9rem;">Escribí al menos 2 caracteres para buscar por ISO o Material...</div>';
+        return;
+      }
+
+      const matches = appState.contenedores.filter(function(c) {
+        if (c.estado !== 'DEPOSITADO') return false;
+        if (c.codigoISO.includes(clean)) return true;
+        if (c.materiales && c.materiales.some(function(m) {
+          return m.descripcion.toUpperCase().includes(clean) || (m.codigo && m.codigo.toUpperCase().includes(clean));
+        })) return true;
+        return false;
+      });
+
+      if (matches.length === 0) {
+        list.innerHTML = '<div style="color: var(--amber-alert); font-family: var(--font-mono);">No se encontraron contenedores activos con "' + clean + '"</div>';
+        return;
+      }
+
+      matches.forEach(function(c) {
+        const item = document.createElement('div');
+        item.className = 'map-row-card';
+        item.style.marginBottom = '10px';
+        let matTags = '';
+        if (c.materiales && c.materiales.length > 0) {
+          matTags = '<div style="margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px;">';
+          c.materiales.forEach(function(m) {
+            matTags += '<span style="font-size: 0.75rem; background: #0f1722; color: #5eead4; border: 1px solid #134e4a; padding: 2px 6px; border-radius: 4px;">' + m.cantidad + ' ' + m.unidad + ' ' + m.descripcion + '</span>';
+          });
+          matTags += '</div>';
+        }
+
+        item.innerHTML = `
+          <div>
+            <div style="font-family: var(--font-mono); font-size: 1.2rem; font-weight: 700; color: #fff;">${c.codigoISO}</div>
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">
+              Ubicación: <strong style="color: var(--teal-primary);">${c.calle} · ${c.fila} · NIVEL ${c.nivel}</strong> | ${c.naviera} | ${c.tipo}
+            </div>
+            ${matTags}
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-ocr" style="height: 38px; font-size: 0.8rem;" onclick="openStackModal('${c.calle}', '${c.fila}')">
+              VER EN MAPA
+            </button>
+            <button class="btn-withdraw-small" onclick="ejecutarRetiro('${c.codigoISO}')">
+              RETIRAR
+            </button>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    // RENDERIZADO DEL HISTORIAL DE AUDITORÍA
+    function renderHistorial() {
+      const tbody = document.getElementById('historyTableBody');
+      tbody.innerHTML = '';
+
+      if (appState.movimientos.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Sin movimientos registrados</td></tr>';
+        return;
+      }
+
+      appState.movimientos.slice(0, 50).forEach(function(m) {
+        const tr = document.createElement('tr');
+        let typeBadgeClass = 'type-ingreso';
+        if (m.tipo === 'RETIRO') typeBadgeClass = 'type-retiro';
+        if (m.tipo === 'REACOMODAMIENTO') typeBadgeClass = 'type-reacomod';
+
+        const originDest = m.tipo === 'INGRESO' ? '➔ Nivel ' + m.nivelDestino :
+                           m.tipo === 'RETIRO' ? 'Nivel ' + m.nivelOrigen + ' ➔ Fuera' :
+                           'Nivel ' + m.nivelOrigen + ' ➔ Nivel ' + m.nivelDestino;
+
+        tr.innerHTML = `
+          <td>${new Date(m.timestamp).toLocaleTimeString()} - ${new Date(m.timestamp).toLocaleDateString()}</td>
+          <td><span class="history-type-badge ${typeBadgeClass}">${m.tipo}</span></td>
+          <td style="font-weight: 700; color: #fff;">${m.codigoISO}</td>
+          <td>${m.calle} / ${m.fila}</td>
+          <td style="color: var(--teal-primary);">${originDest}</td>
+          <td style="color: var(--text-muted); font-size: 0.85rem;">${m.motivo || ''}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function clearHistoryConfirm() {
+      if (confirm('¿Desea limpiar el historial de movimientos local?')) {
+        appState.movimientos = [];
+        guardarEnLocalStorage();
+        renderHistorial();
+        showToast('Historial local vaciado.');
+      }
+    }
+
+    // GESTIÓN DE PERSISTENCIA Y LOCALSTORAGE
+    function cargarDatosIniciales() {
+      try {
+        const storedCont = localStorage.getItem('gas_terex_contenedores');
+        const storedMov = localStorage.getItem('gas_terex_movimientos');
+        if (storedCont) {
+          appState.contenedores = JSON.parse(storedCont);
+          appState.movimientos = storedMov ? JSON.parse(storedMov) : [];
+          return;
+        }
+      } catch(e) {}
+
+      // Flota de prueba inicial
+      appState.contenedores = [
+        { codigoISO: 'MSKU8291034', calle: 'C-01', fila: 'F-01', nivel: 1, tipo: "40' HC", naviera: 'Maersk', estado: 'DEPOSITADO', fechaIngreso: new Date().toISOString() },
+        { codigoISO: 'CMAU5482019', calle: 'C-01', fila: 'F-01', nivel: 2, tipo: "20' DC", naviera: 'CMA CGM', estado: 'DEPOSITADO', fechaIngreso: new Date().toISOString() },
+        { codigoISO: 'TGHU9182345', calle: 'C-01', fila: 'F-01', nivel: 3, tipo: "40' HC", naviera: 'MSC', estado: 'DEPOSITADO', fechaIngreso: new Date().toISOString() },
+        { codigoISO: 'HLCU7728103', calle: 'C-02', fila: 'F-05', nivel: 1, tipo: "40' HC", naviera: 'Hapag-Lloyd', estado: 'DEPOSITADO', fechaIngreso: new Date().toISOString() },
+        { codigoISO: 'COSU6291040', calle: 'C-02', fila: 'F-05', nivel: 2, tipo: "40' DC", naviera: 'Cosco', estado: 'DEPOSITADO', fechaIngreso: new Date().toISOString() }
+      ];
+      guardarEnLocalStorage();
+    }
+
+    function guardarEnLocalStorage() {
+      try {
+        localStorage.setItem('gas_terex_contenedores', JSON.stringify(appState.contenedores));
+        localStorage.setItem('gas_terex_movimientos', JSON.stringify(appState.movimientos));
+      } catch(e) {}
+    }
+
+    function showToast(msg) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerText = msg;
+      container.appendChild(toast);
+      setTimeout(function() {
+        toast.style.opacity = '0';
+        setTimeout(function() { toast.remove(); }, 300);
+      }, 3500);
+    }
+  </script>
+</body>
+</html>

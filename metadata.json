@@ -1,0 +1,8 @@
+{
+  "name": "Remix Terex Playa D - Gestión de Contenedores",
+  "description": "Sistema industrial táctil para operaciones de containera Terex en Playa D: geolocalización de estibas hasta 5 niveles, reacomodamiento por gravedad, validación ISO 6346 y exportación para Google Apps Script.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
