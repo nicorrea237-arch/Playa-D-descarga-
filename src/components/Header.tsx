@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, Layers, FileCode, RotateCcw, Sun, Moon } from 'lucide-react';
+import logoLaEmilia from '../../LaEmilia_Logosnuevos2023_Mesa de trabajo 1.jpg';
 
 interface HeaderProps {
   totalOccupied: number;
@@ -44,7 +45,7 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="flex items-center gap-3">
         <div className="bg-white px-2.5 py-1 rounded-lg shadow-sm border border-slate-200/80 flex items-center justify-center no-theme-invert">
           <img
-            src={`${import.meta.env.BASE_URL}publi/LaEmilia_Logosnuevos2023_Mesa%20de%20trabajo%201.jpg`}
+            src={logoLaEmilia}
             alt="La Emilia - Negocios de movilidad"
             className="h-9 md:h-10 w-auto object-contain"
           />
