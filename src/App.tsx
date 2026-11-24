@@ -31,6 +31,20 @@ interface ToastMessage {
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'operacion' | 'mapa' | 'buscador' | 'historial'>('operacion');
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    return (localStorage.getItem('playa-d-theme') as 'dark' | 'light') || 'dark';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('playa-d-theme', theme);
+    if (theme === 'light') {
+      document.documentElement.classList.add('light-mode');
+    } else {
+      document.documentElement.classList.remove('light-mode');
+    }
+  }, [theme]);
+
+  const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   const [containers, setContainers] = useState<Container[]>([]);
   const [movements, setMovements] = useState<MovementRecord[]>([]);
   const [config, setConfig] = useState<PlayaConfig>(StorageService.getConfig());
@@ -174,6 +188,8 @@ export default function App() {
         maxCapacity={maxCapacity}
         onOpenGasModal={() => setIsGasModalOpen(true)}
         onResetDemo={handleResetDemo}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
       {/* 4 MAIN TABS NAVIGATION (Touch min 52px high) */}
