@@ -1,1 +1,12 @@
 @import "tailwindcss";
+
+/* Modo Iluminado (Sol) de alto contraste */
+html.light-mode {
+  filter: invert(0.92) hue-rotate(180deg);
+}
+
+/* Protege los colores originales del logo e íconos marcados */
+html.light-mode .no-theme-invert,
+html.light-mode img {
+  filter: invert(1) hue-rotate(180deg);
+}
