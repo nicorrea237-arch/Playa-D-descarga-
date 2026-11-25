@@ -722,6 +722,137 @@ export const TerexOperationTab: React.FC<TerexOperationTabProps> = ({
                     className="w-full h-11 bg-[#0b1117] border border-[#233140] rounded px-3 text-sm font-mono text-white focus:outline-none focus:border-teal-400"
                   />
                 </div>
+               <div className="sm:col-span-2">
+                  <label className="text-[10px] font-mono text-slate-400 block mb-1 uppercase">
+                    CÓDIGO / SKU
+                  </label>
+                  <input
+                    type="text"
+                    value={matCodigo}
+                    onChange={(e) => setMatCodigo(e.target.value)}
+                    placeholder="EJ: SKU-01"
+                    className="w-full h-11 bg-[#0b1117] border border-[#233140] rounded px-3 text-sm font-mono text-white focus:outline-none focus:border-teal-400"
+                  />
+                </div>
                 <div className="sm:col-span-2">
                   <label className="text-[10px] font-mono text-slate-400 block mb-1 uppercase">
-                    CÓDIGO /
+                    CANTIDAD
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={matCant}
+                    onChange={(e) => setMatCant(Number(e.target.value))}
+                    className="w-full h-11 bg-[#0b1117] border border-[#233140] rounded px-3 text-sm font-mono text-white focus:outline-none focus:border-teal-400"
+                  />
+                </div>
+                <div className="sm:col-span-3">
+                  <label className="text-[10px] font-mono text-slate-400 block mb-1 uppercase">
+                    UNIDAD
+                  </label>
+                  <select
+                    value={matUnidad}
+                    onChange={(e) => setMatUnidad(e.target.value)}
+                    className="w-full h-11 bg-[#0b1117] border border-[#233140] rounded px-3 text-sm font-mono text-white focus:outline-none focus:border-teal-400"
+                  >
+                    <option value="BULTOS">BULTOS</option>
+                    <option value="PALLETS">PALLETS</option>
+                    <option value="UNIDADES">UNIDADES</option>
+                    <option value="CAJAS">CAJAS</option>
+                    <option value="TAMBORES">TAMBORES</option>
+                    <option value="KILOS (KG)">KILOS (KG)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap gap-1.5">
+                  {[1, 10, 50, 100].map((inc) => (
+                    <button
+                      key={inc}
+                      type="button"
+                      onClick={() => setMatCant((prev) => Number(prev || 0) + inc)}
+                      className="px-2.5 py-1 bg-[#0b1117] hover:bg-teal-500/20 text-teal-300 border border-teal-500/30 rounded text-xs font-mono font-bold"
+                    >
+                      + {inc}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddMaterial}
+                  className="px-4 py-2 bg-teal-500 hover:bg-teal-400 text-slate-950 font-mono font-bold text-xs rounded-lg flex items-center gap-1.5"
+                >
+                  <Plus className="w-4 h-4" />
+                  AGREGAR AL CONTENEDOR
+                </button>
+              </div>
+            </div>
+
+            {materiales.length === 0 ? (
+              <p className="text-xs font-mono text-slate-400 italic">
+                Ningún material cargado aún. Puede usar los botones rápidos arriba o ingresar ítems manualmente.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {materiales.map((item) => (
+                  <div
+                    key={item.id}
+                    className="bg-[#151e27] border border-[#233140] rounded-lg px-3 py-2 flex items-center justify-between gap-2"
+                  >
+                    <div>
+                      <div className="text-xs font-mono font-bold text-white">{item.descripcion}</div>
+                      {item.codigo && (
+                        <div className="text-[10px] font-mono text-teal-400">SKU: {item.codigo}</div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-mono font-bold text-teal-300">
+                        {item.cantidad} {item.unidad}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveMaterial(item.id)}
+                        className="text-red-400 hover:text-red-300 p-1"
+                        title="Quitar material"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label className="text-xs font-mono text-slate-400 block mb-1.5 uppercase">
+              OBSERVACIONES / ESTADO FÍSICO (OPCIONAL)
+            </label>
+            <input
+              type="text"
+              value={observaciones}
+              onChange={(e) => setObservaciones(e.target.value)}
+              placeholder="Ej: Sin daños visibles, precinto en regla..."
+              className="w-full h-12 bg-[#0b1117] border border-[#233140] rounded-lg px-4 text-sm font-mono text-white focus:outline-none focus:border-teal-400"
+            />
+          </div>
+
+          <button
+            type="submit"
+            onClick={handleSubmitAction}
+            disabled={!cleanIso || isRowFull}
+            className="w-full min-h-[58px] bg-teal-500 hover:bg-teal-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-mono font-bold text-base md:text-lg rounded-xl shadow-lg shadow-teal-500/20 flex items-center justify-center gap-3 transition-all"
+          >
+            <Truck className="w-6 h-6" />
+            {!cleanIso
+              ? 'INGRESE CÓDIGO ISO PARA CONFIRMAR INGRESO'
+              : isRowFull
+              ? `FILA ${selectedFila} LLENA (${config.alturaMaxima}/${config.alturaMaxima})`
+              : `CONFIRMAR INGRESO DE ${cleanIso} (${selectedCalle} · ${selectedFila} · NIVEL ${assignedLevel})`}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
