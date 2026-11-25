@@ -48,34 +48,34 @@ export const OcrScannerModal: React.FC<OcrScannerModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-[#151e27] border-2 border-[#233140] w-full max-w-lg rounded-xl overflow-hidden shadow-2xl flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/65 dark:bg-black/85 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-[#151e27] border-2 border-slate-300 dark:border-[#233140] w-full max-w-lg rounded-xl overflow-hidden shadow-2xl flex flex-col">
         {/* Modal Header */}
-        <div className="bg-[#0f1722] px-5 py-4 border-b border-[#233140] flex items-center justify-between">
+        <div className="bg-slate-50 dark:bg-[#0f1722] px-5 py-4 border-b border-slate-200 dark:border-[#233140] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-teal-500/10 border border-teal-500/30 rounded-lg text-teal-400">
-              <Camera className="w-5 h-5 animate-pulse" />
+            <div className="p-2 bg-teal-50 dark:bg-teal-500/10 border border-teal-200 dark:border-teal-500/30 rounded-lg text-teal-700 dark:text-teal-400">
+              <Camera className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-white tracking-wide text-lg font-mono">
-                SIMULADOR OCR TEREX
+              <h3 className="font-bold text-slate-900 dark:text-white tracking-wide text-lg font-mono">
+                SIMULADOR OCR CABINA
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-600 dark:text-slate-400">
                 Cámara IP cabina · Reconocimiento automático de contenedor
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white p-2 text-xl"
+            className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white p-2 text-xl"
             title="Cerrar"
           >
             <X className="w-6 h-6" />
           </button>
         </div>
 
-        {/* Viewfinder Camera Simulation */}
-        <div className="relative bg-black aspect-video flex items-center justify-center overflow-hidden border-y border-[#233140]">
+        {/* Viewfinder Camera Simulation (intentionally dark optical viewfinder) */}
+        <div className="relative bg-slate-950 aspect-video flex items-center justify-center overflow-hidden border-y border-slate-300 dark:border-[#233140]">
           {/* Grid lines */}
           <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none opacity-20">
             <div className="border-r border-b border-teal-400"></div>
@@ -96,7 +96,6 @@ export const OcrScannerModal: React.FC<OcrScannerModalProps> = ({
 
           {/* Container Bounding Box */}
           <div className="relative z-10 border-2 border-teal-400/80 rounded px-6 py-4 bg-teal-950/30 backdrop-blur-[1px] flex flex-col items-center">
-            {/* Corner brackets */}
             <div className="absolute -top-1 -left-1 w-3 h-3 border-t-2 border-l-2 border-teal-300"></div>
             <div className="absolute -top-1 -right-1 w-3 h-3 border-t-2 border-r-2 border-teal-300"></div>
             <div className="absolute -bottom-1 -left-1 w-3 h-3 border-b-2 border-l-2 border-teal-300"></div>
@@ -120,18 +119,18 @@ export const OcrScannerModal: React.FC<OcrScannerModalProps> = ({
           <div className="absolute bottom-2 left-3 font-mono text-[11px] text-teal-300/80 bg-black/50 px-2 py-1 rounded">
             LENS: 35mm F/2.8 · ISO 400 · EXP: 1/500s
           </div>
-          <div className="absolute top-2 right-3 font-mono text-[11px] text-amber-400 bg-black/50 px-2 py-1 rounded flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span> REC LIVE
+          <div className="absolute top-2 right-3 font-mono text-[11px] text-amber-400 bg-black/50 px-2 py-1 rounded">
+            CAM LIVE
           </div>
         </div>
 
         {/* Quick sample cycler */}
-        <div className="p-4 bg-[#0f1722] border-t border-[#233140] flex flex-col gap-3">
-          <div className="flex items-center justify-between text-xs text-slate-400 font-mono">
+        <div className="p-4 bg-slate-50 dark:bg-[#0f1722] border-t border-slate-200 dark:border-[#233140] flex flex-col gap-3">
+          <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 font-mono">
             <span>MUESTRAS DISPONIBLES:</span>
             <button
               onClick={handleCycleSample}
-              className="text-teal-400 hover:text-teal-300 flex items-center gap-1 py-1 px-2 rounded bg-teal-500/10 border border-teal-500/20"
+              className="text-teal-700 dark:text-teal-400 hover:text-teal-900 dark:hover:text-teal-300 flex items-center gap-1 py-1 px-2 rounded bg-teal-50 dark:bg-teal-500/10 border border-teal-200 dark:border-teal-500/20 font-semibold"
             >
               <RefreshCw className="w-3.5 h-3.5" /> Cambiar código
             </button>
@@ -151,8 +150,8 @@ export const OcrScannerModal: React.FC<OcrScannerModalProps> = ({
                 }}
                 className={`py-2 px-2 text-xs font-mono rounded border transition-all ${
                   selectedSample === code
-                    ? 'bg-teal-500/20 border-teal-400 text-teal-300 font-bold'
-                    : 'bg-[#151e27] border-[#233140] text-slate-300 hover:border-slate-500'
+                    ? 'bg-teal-50 dark:bg-teal-500/20 border-teal-600 dark:border-teal-400 text-teal-800 dark:text-teal-300 font-bold'
+                    : 'bg-white dark:bg-[#151e27] border-slate-300 dark:border-[#233140] text-slate-700 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-500'
                 }`}
               >
                 {code}
@@ -163,10 +162,10 @@ export const OcrScannerModal: React.FC<OcrScannerModalProps> = ({
           {/* Capture button */}
           <button
             onClick={() => handleCapture(selectedSample)}
-            className="w-full h-13 mt-2 bg-teal-500 hover:bg-teal-400 text-black font-bold font-mono text-base rounded-lg shadow-lg shadow-teal-500/20 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+            className="w-full h-13 mt-2 bg-teal-600 hover:bg-teal-500 dark:bg-teal-500 dark:hover:bg-teal-400 text-white dark:text-black font-bold font-mono text-base rounded-lg shadow-lg shadow-teal-600/20 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
           >
             <Camera className="w-5 h-5" />
-            CAPTURAR Y TRANSFERIR A TEREX
+            CAPTURAR Y TRANSFERIR A CABINA
           </button>
         </div>
       </div>

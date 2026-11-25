@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layers, Eye, ShieldAlert, Sparkles } from 'lucide-react';
+import { Eye } from 'lucide-react';
 import { Container, PlayaConfig } from '../types/container';
 
 interface PlayaMapTabProps {
@@ -25,27 +25,24 @@ export const PlayaMapTab: React.FC<PlayaMapTabProps> = ({
   return (
     <div className="space-y-5">
       {/* Top Controls / Filters */}
-      <div className="bg-[#151e27] border-2 border-[#233140] rounded-xl p-4 md:p-5 flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white dark:bg-[#151e27] border-2 border-slate-200 dark:border-[#233140] rounded-xl p-4 md:p-5 flex flex-wrap items-center justify-between gap-4 shadow-sm dark:shadow-none transition-colors">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-teal-400"></span>
-            <h2 className="font-mono font-bold text-lg text-white tracking-wide">
-              TOPOLOGÍA DE PLAYA D · MAPA DE ESTIBAS
-            </h2>
-          </div>
-          <p className="text-xs text-slate-400 font-mono mt-0.5">
-            4 calles operativas · 15 filas por calle · Estiba vertical máxima: 5 niveles Terex
+          <h2 className="font-mono font-bold text-lg text-slate-900 dark:text-white tracking-wide">
+            TOPOLOGÍA DE PLAYA D · MAPA DE ESTIBAS
+          </h2>
+          <p className="text-xs text-slate-600 dark:text-slate-400 font-mono mt-0.5">
+            4 calles operativas · 15 filas por calle · Estiba vertical máxima: 5 niveles
           </p>
         </div>
 
         {/* Street selector tabs */}
-        <div className="flex flex-wrap items-center gap-1.5 bg-[#0b1117] p-1.5 rounded-lg border border-[#233140]">
+        <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 dark:bg-[#0b1117] p-1.5 rounded-lg border border-slate-300 dark:border-[#233140]">
           <button
             onClick={() => setActiveStreetFilter('TODAS')}
-            className={`px-3 py-1.5 rounded text-xs font-mono font-bold transition-all ${
+            className={`px-3 py-1.5 rounded text-xs font-mono font-bold transition-all whitespace-nowrap ${
               activeStreetFilter === 'TODAS'
-                ? 'bg-teal-500 text-black shadow-sm'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-teal-600 dark:bg-teal-500 text-white dark:text-black shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             TODAS (4 CALLES)
@@ -54,10 +51,10 @@ export const PlayaMapTab: React.FC<PlayaMapTabProps> = ({
             <button
               key={calle}
               onClick={() => setActiveStreetFilter(calle)}
-              className={`px-3 py-1.5 rounded text-xs font-mono font-bold transition-all ${
+              className={`px-3 py-1.5 rounded text-xs font-mono font-bold transition-all whitespace-nowrap ${
                 activeStreetFilter === calle
-                  ? 'bg-teal-500 text-black shadow-sm'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-teal-600 dark:bg-teal-500 text-white dark:text-black shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               {calle}
@@ -87,33 +84,33 @@ export const PlayaMapTab: React.FC<PlayaMapTabProps> = ({
           return (
             <div
               key={calle}
-              className="bg-[#101720] border-2 border-[#233140] rounded-xl p-4 flex flex-col shadow-lg"
+              className="bg-white dark:bg-[#101720] border-2 border-slate-200 dark:border-[#233140] rounded-xl p-4 flex flex-col shadow-sm dark:shadow-lg transition-colors"
             >
               {/* Street Header */}
-              <div className="flex items-center justify-between border-b border-[#233140] pb-3 mb-3">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-[#233140] pb-3 mb-3">
                 <div className="flex items-center gap-2">
-                  <div className="px-2.5 py-1 bg-teal-500/10 border border-teal-500/30 rounded font-mono font-bold text-base text-teal-300">
+                  <div className="px-2.5 py-1 bg-teal-50 dark:bg-teal-500/10 border border-teal-300 dark:border-teal-500/30 rounded font-mono font-bold text-base text-teal-800 dark:text-teal-300">
                     {calle}
                   </div>
                   <div>
-                    <span className="text-[11px] font-mono text-slate-400 uppercase block leading-none">
+                    <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 uppercase block leading-none">
                       CALLE OPERATIVA
                     </span>
-                    <span className="text-xs font-mono font-bold text-white">
+                    <span className="text-xs font-mono font-bold text-slate-900 dark:text-white tabular-nums">
                       {streetContainers.length} / {streetCapacity} TEU
                     </span>
                   </div>
                 </div>
 
                 <div className="text-right">
-                  <span className="text-[10px] font-mono text-slate-400 block leading-none">
+                  <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 block leading-none">
                     OCUPACIÓN
                   </span>
                   <span
-                    className={`text-xs font-mono font-bold ${
+                    className={`text-xs font-mono font-bold tabular-nums ${
                       parseFloat(streetOccupancyPercent) > 60
-                        ? 'text-amber-400'
-                        : 'text-teal-400'
+                        ? 'text-amber-700 dark:text-amber-400'
+                        : 'text-teal-700 dark:text-teal-400'
                     }`}
                   >
                     {streetOccupancyPercent}%
@@ -142,40 +139,40 @@ export const PlayaMapTab: React.FC<PlayaMapTabProps> = ({
                       onClick={() => onOpenRowModal(calle, filaId)}
                       className={`w-full text-left p-2.5 rounded-lg border transition-all flex items-center justify-between group cursor-pointer ${
                         isRowHighlighted
-                          ? 'bg-amber-950/50 border-2 border-amber-400 shadow-[0_0_18px_rgba(245,158,11,0.6)] animate-pulse'
+                          ? 'bg-amber-50 dark:bg-amber-950/50 border-2 border-amber-500 dark:border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.35)] animate-pulse'
                           : isFull
-                          ? 'bg-[#181216] border-red-500/30 hover:border-red-400'
+                          ? 'bg-red-50 dark:bg-[#181216] border-red-300 dark:border-red-500/30 hover:border-red-500 dark:hover:border-red-400'
                           : count > 0
-                          ? 'bg-[#151e27] border-[#233140] hover:border-teal-400'
-                          : 'bg-[#0f1722]/60 border-slate-800 hover:border-slate-600'
+                          ? 'bg-slate-50 dark:bg-[#151e27] border-slate-300 dark:border-[#233140] hover:border-teal-500 dark:hover:border-teal-400'
+                          : 'bg-slate-50/50 dark:bg-[#0f1722]/60 border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-600'
                       }`}
                     >
                       {/* Left: Row name & count */}
                       <div className="flex items-center gap-2.5">
-                        <span className={`font-mono font-bold text-sm ${isRowHighlighted ? 'text-amber-300' : 'text-white'} group-hover:text-teal-300 transition-colors`}>
+                        <span className={`font-mono font-bold text-sm ${isRowHighlighted ? 'text-amber-800 dark:text-amber-300' : 'text-slate-900 dark:text-white'} group-hover:text-teal-700 dark:group-hover:text-teal-300 transition-colors`}>
                           {filaId}
                         </span>
 
                         {isRowHighlighted && (
                           <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500 text-black font-black shadow-sm">
-                            🎯 MATERIAL AQUÍ
+                            MATERIAL AQUÍ
                           </span>
                         )}
 
                         <span
-                          className={`text-xs font-mono px-2 py-0.5 rounded font-bold ${
+                          className={`text-xs font-mono px-2 py-0.5 rounded font-bold tabular-nums ${
                             isRowHighlighted
-                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                              ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-900 dark:text-amber-300 border border-amber-400 dark:border-amber-500/40'
                               : isFull
-                              ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                              ? 'bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400 border border-red-300 dark:border-red-500/30'
                               : count >= 3
-                              ? 'bg-amber-500/10 text-amber-300 border border-amber-500/20'
+                              ? 'bg-amber-100 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-500/20'
                               : count > 0
-                              ? 'bg-teal-500/10 text-teal-300 border border-teal-500/20'
-                              : 'bg-slate-800 text-slate-500'
+                              ? 'bg-teal-50 dark:bg-teal-500/10 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-500/20'
+                              : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-500'
                           }`}
                         >
-                          {count}/{config.alturaMaxima} {isFull ? '🔴 LLENA' : ''}
+                          {count}/{config.alturaMaxima} {isFull ? 'LLENA' : ''}
                         </span>
                       </div>
 
@@ -191,9 +188,9 @@ export const PlayaMapTab: React.FC<PlayaMapTabProps> = ({
                                 className={`w-2.5 rounded-xs transition-all ${
                                   isFilled
                                     ? isFull
-                                      ? 'h-full bg-red-400 shadow-[0_0_4px_#ef4444]'
-                                      : 'h-full bg-teal-400 shadow-[0_0_4px_#14b8a6]'
-                                    : 'h-1.5 bg-slate-800'
+                                      ? 'h-full bg-red-500 dark:bg-red-400'
+                                      : 'h-full bg-teal-600 dark:bg-teal-400'
+                                    : 'h-1.5 bg-slate-300 dark:bg-slate-800'
                                 }`}
                                 title={`Nivel ${lvl}: ${isFilled ? 'Ocupado' : 'Libre'}`}
                               />
@@ -202,12 +199,12 @@ export const PlayaMapTab: React.FC<PlayaMapTabProps> = ({
                         </div>
 
                         {topContainer && (
-                          <span className="hidden sm:inline font-mono text-[10px] text-slate-400 group-hover:text-slate-200 truncate max-w-[85px]">
+                          <span className="hidden sm:inline font-mono text-[10px] text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200 truncate max-w-[85px]">
                             {topContainer.codigoISO.slice(-6)}
                           </span>
                         )}
 
-                        <div className="text-slate-500 group-hover:text-teal-400 p-1">
+                        <div className="text-slate-400 dark:text-slate-500 group-hover:text-teal-600 dark:group-hover:text-teal-400 p-1">
                           <Eye className="w-4 h-4" />
                         </div>
                       </div>

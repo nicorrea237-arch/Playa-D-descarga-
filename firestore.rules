@@ -1,0 +1,73 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isLaEmiliaUser() {
+      return isSignedIn()
+        && request.auth.token.email_verified == true
+        && request.auth.token.email is string
+        && request.auth.token.email.size() >= 16
+        && request.auth.token.email.size() <= 254
+        && request.auth.token.email.lower().matches('^[^@]+@laemilia\\.com\\.ar$');
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidUserProfile(data, userId) {
+      return data.keys().hasAll(['uid', 'email', 'displayName', 'domain', 'createdAt', 'lastLoginAt'])
+        && data.keys().hasOnly(['uid', 'email', 'displayName', 'domain', 'createdAt', 'lastLoginAt'])
+        && data.uid is string && data.uid == userId && data.uid == request.auth.uid
+        && data.email is string && data.email.size() >= 16 && data.email.size() <= 254
+        && data.email.lower() == request.auth.token.email.lower()
+        && data.email.lower().matches('^[^@]+@laemilia\\.com\\.ar$')
+        && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 120
+        && data.domain is string && data.domain == 'laemilia.com.ar'
+        && data.createdAt is timestamp
+        && data.lastLoginAt is timestamp;
+    }
+
+    match /users/{userId} {
+      allow get: if isLaEmiliaUser() && isValidId(userId) && isOwner(userId);
+      allow list: if false;
+      allow create: if isLaEmiliaUser()
+        && isValidId(userId)
+        && isOwner(userId)
+        && isValidUserProfile(incoming(), userId)
+        && incoming().createdAt == request.time
+        && incoming().lastLoginAt == request.time;
+      allow update: if isLaEmiliaUser()
+        && isValidId(userId)
+        && isOwner(userId)
+        && isValidUserProfile(incoming(), userId)
+        && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'lastLoginAt'])
+        && incoming().uid == existing().uid
+        && incoming().email == existing().email
+        && incoming().domain == existing().domain
+        && incoming().createdAt == existing().createdAt
+        && incoming().lastLoginAt == request.time;
+      allow delete: if false;
+    }
+  }
+}

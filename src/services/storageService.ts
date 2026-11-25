@@ -87,6 +87,17 @@ function generateInitialFleet(): Container[] {
     ]
   ];
 
+  const sampleSectorsPool: string[][] = [
+    ['Logística de entrada'],
+    ['Logística de salida'],
+    ['Inyecciones', 'Logística de entrada'],
+    ['Retenidas'],
+    ['Mantenimiento'],
+    ['Miguel Lette'],
+    ['Seguridad e higiene'],
+    ['Ingeniería de procesos', 'Inyecciones'],
+  ];
+
   let sampleIdx = 0;
   for (const item of stackConfigs) {
     for (let nivel = 1; nivel <= item.count; nivel++) {
@@ -98,6 +109,7 @@ function generateInitialFleet(): Container[] {
       const daysAgo = Math.floor(Math.random() * 10) + 1;
       const date = new Date(baseDate.getTime() - daysAgo * 24 * 60 * 60 * 1000);
       const matSample = sampleMaterialsPool[sampleIdx % sampleMaterialsPool.length];
+      const sectorSample = sampleSectorsPool[sampleIdx % sampleSectorsPool.length];
 
       containers.push({
         codigoISO,
@@ -111,6 +123,7 @@ function generateInitialFleet(): Container[] {
         fechaIngreso: date.toISOString(),
         observaciones: nivel === item.count && item.count === 5 ? 'Tope de estiba máxima (5/5)' : 'Carga general en regla',
         operador: 'TEREX-01 / Cabina',
+        sectores: sectorSample,
         materiales: matSample
       });
       sampleIdx++;
@@ -229,6 +242,7 @@ export class StorageService {
     tara?: number;
     observaciones?: string;
     operador: string;
+    sectores?: string[];
     materiales?: import('../types/container').MaterialItem[];
   }): { container: Container; movement: MovementRecord } {
     const cleanCode = data.codigoISO.trim().toUpperCase();
@@ -266,6 +280,7 @@ export class StorageService {
       fechaIngreso: nowIso,
       observaciones: data.observaciones || '',
       operador: data.operador || 'TEREX-01 / Cabina',
+      sectores: data.sectores || [],
       materiales: data.materiales || []
     };
 
