@@ -486,4 +486,234 @@ export function App() {
                 CORREO CORPORATIVO LA EMILIA
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-teal-400 absolute left-3.5 top-1/2 -translate-y-1/
+                <Mail className="w-4 h-4 text-teal-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="email"
+                  required
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  placeholder="nombre.apellido@laemilia.com.ar"
+                  className="w-full h-12 bg-[#0b1117] border-2 border-[#233140] focus:border-teal-400 rounded-xl pl-10 pr-4 text-sm font-mono text-white placeholder-slate-600 focus:outline-none"
+                />
+              </div>
+            </div>
+            {loginError && (
+              <div className="bg-red-950/50 border border-red-500/50 rounded-xl p-3 text-xs font-mono text-red-300 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                <span>{loginError}</span>
+              </div>
+            )}
+            <button
+              type="submit"
+              disabled={isVerifyingUser}
+              className="w-full h-12 bg-teal-500 hover:bg-teal-400 disabled:opacity-50 text-slate-950 font-mono font-bold text-sm rounded-xl shadow-lg shadow-teal-500/20 flex items-center justify-center gap-2 transition-all"
+            >
+              <ShieldCheck className="w-4 h-4" />
+              {isVerifyingUser ? 'VERIFICANDO ACCESO...' : 'INGRESAR A PLAYA D'}
+            </button>
+          </form>
+          <div className="pt-2 border-t border-[#233140] text-[11px] font-mono text-slate-500 text-center">
+            Dominio permitido: <span className="text-slate-300">@laemilia.com.ar</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const activeContainers = containers.filter((c) => c.estado === 'DEPOSITADO');
+
+  return (
+    <div
+      className={`min-h-screen font-sans flex flex-col ${
+        theme === 'light' ? 'bg-slate-100 text-slate-900' : 'bg-[#0b1117] text-slate-100'
+      }`}
+    >
+      {toast && (
+        <div
+          className={`fixed bottom-5 right-5 z-50 px-4 py-3 rounded-xl border-2 font-mono text-xs md:text-sm font-bold flex items-center gap-2.5 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-200 max-w-md ${
+            toast.type === 'success'
+              ? 'bg-emerald-950 text-emerald-200 border-emerald-500/60'
+              : toast.type === 'error'
+              ? 'bg-red-950 text-red-200 border-red-500/60'
+              : 'bg-slate-900 text-teal-200 border-teal-500/60'
+          }`}
+        >
+          {toast.type === 'success' ? (
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+          ) : (
+            <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />
+          )}
+          <span>{toast.message}</span>
+        </div>
+      )}
+
+      <header className="bg-[#151e27] border-b-2 border-[#233140] px-4 py-3 sticky top-0 z-30 shadow-lg">
+        <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <img
+              src="LaEmilia_Logosnuevos2023_Mesa de trabajo 1.jpg"
+              alt="Logo La Emilia"
+              className="h-10 md:h-11 w-auto object-contain rounded-lg bg-white/95 px-2 py-1 shrink-0"
+            />
+            <div className="w-10 h-10 rounded-xl bg-teal-500/15 border border-teal-500/40 flex items-center justify-center shrink-0">
+              <Truck className="w-6 h-6 text-teal-400" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="font-mono font-bold text-base md:text-lg text-white tracking-wider">
+                  TEREX · {config.depositoNombre}
+                </h1>
+                <span className="hidden sm:inline-block text-[10px] font-mono bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded border border-teal-500/40 font-bold">
+                  {config.maquinaId}
+                </span>
+              </div>
+              <div className="text-[11px] font-mono text-slate-400 flex items-center gap-2">
+                <span>
+                  CONTENEDORES ACTIVOS: <strong className="text-teal-400">{activeContainers.length}</strong>
+                </span>
+                <span>·</span>
+                <span className="text-emerald-400 font-bold">{authorizedUser}</span>
+                {gasUrl && (
+                  <>
+                    <span>·</span>
+                    <span className="text-emerald-400 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                      GAS CONECTADO
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
+              className="h-9 px-3 rounded-lg bg-[#0f1722] hover:bg-[#1a2533] text-amber-300 border border-amber-500/30 font-mono text-xs font-bold flex items-center gap-1.5 transition-all"
+              title="Cambiar entre Modo Noche y Modo Sol"
+            >
+              <span>{theme === 'dark' ? 'MODO SOL' : 'MODO NOCHE'}</span>
+            </button>
+            {gasUrl && (
+              <button
+                type="button"
+                onClick={() => syncWithGas()}
+                disabled={isSyncing}
+                className="h-9 px-3 rounded-lg bg-[#0f1722] hover:bg-[#1a2533] text-teal-300 border border-teal-500/30 font-mono text-xs font-bold flex items-center gap-1.5 transition-all disabled:opacity-50"
+                title="Sincronizar con Google Apps Script"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">SYNC</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="h-9 px-2.5 rounded-lg bg-[#0f1722] hover:bg-red-950/50 text-slate-400 hover:text-red-300 border border-[#233140] font-mono text-xs font-bold flex items-center gap-1 transition-all"
+              title="Cerrar sesión"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">SALIR</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <nav className="bg-[#0f1722] border-b border-[#233140] px-4 sticky top-[68px] z-20">
+        <div className="max-w-6xl mx-auto flex items-center gap-1.5 overflow-x-auto py-2 no-scrollbar">
+          <button
+            type="button"
+            onClick={() => setActiveTab('terex')}
+            className={`px-4 py-2.5 rounded-lg font-mono font-bold text-xs md:text-sm flex items-center gap-2 transition-all whitespace-nowrap shrink-0 ${
+              activeTab === 'terex'
+                ? 'bg-teal-500 text-slate-950 shadow-lg shadow-teal-500/20'
+                : 'text-slate-400 hover:text-white hover:bg-[#151e27]'
+            }`}
+          >
+            <Truck className="w-4 h-4" /> OPERACIÓN TEREX
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('map')}
+            className={`px-4 py-2.5 rounded-lg font-mono font-bold text-xs md:text-sm flex items-center gap-2 transition-all whitespace-nowrap shrink-0 ${
+              activeTab === 'map'
+                ? 'bg-teal-500 text-slate-950 shadow-lg shadow-teal-500/20'
+                : 'text-slate-400 hover:text-white hover:bg-[#151e27]'
+            }`}
+          >
+            MAPA PLAYA D
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-black/25 font-mono">
+              {activeContainers.length}
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('search')}
+            className={`px-4 py-2.5 rounded-lg font-mono font-bold text-xs md:text-sm flex items-center gap-2 transition-all whitespace-nowrap shrink-0 ${
+              activeTab === 'search'
+                ? 'bg-teal-500 text-slate-950 shadow-lg shadow-teal-500/20'
+                : 'text-slate-400 hover:text-white hover:bg-[#151e27]'
+            }`}
+          >
+            BUSCADOR
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('history')}
+            className={`px-4 py-2.5 rounded-lg font-mono font-bold text-xs md:text-sm flex items-center gap-2 transition-all whitespace-nowrap shrink-0 ${
+              activeTab === 'history'
+                ? 'bg-teal-500 text-slate-950 shadow-lg shadow-teal-500/20'
+                : 'text-slate-400 hover:text-white hover:bg-[#151e27]'
+            }`}
+          >
+            HISTORIAL
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-black/25 font-mono">
+              {movements.length}
+            </span>
+          </button>
+        </div>
+      </nav>
+
+      <main className="flex-1 p-4 md:p-6">
+        {activeTab === 'terex' && (
+          <TerexOperationTab
+            config={config}
+            activeContainers={activeContainers}
+            onIngreso={handleIngreso}
+            onRetiro={handleRetiro}
+            onNavigateToMap={() => setActiveTab('map')}
+            initialCode={quickIsoCode}
+            currentOperator={authorizedUser}
+          />
+        )}
+        {activeTab === 'map' && (
+          <PlayaMapTab
+            config={config}
+            activeContainers={activeContainers}
+            onRetiro={handleRetiro}
+            highlightedContainer={selectedContainerForMap}
+            onClearHighlight={() => setSelectedContainerForMap(null)}
+          />
+        )}
+        {activeTab === 'search' && (
+          <SearchTab
+            containers={containers}
+            onSelectContainer={(c) => {
+              setSelectedContainerForMap(c);
+              setActiveTab('map');
+            }}
+            onQuickRetiro={(iso) => {
+              setQuickIsoCode(iso);
+              setActiveTab('terex');
+            }}
+          />
+        )}
+        {activeTab === 'history' && (
+          <HistoryTab movements={movements} containers={containers} />
+        )}
+      </main>
+    </div>
+  );
+}
+      
