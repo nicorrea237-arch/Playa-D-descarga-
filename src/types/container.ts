@@ -7,6 +7,17 @@ export interface MaterialItem {
   pesoKg?: number;
 }
 
+export const SECTORES_LA_EMILIA = [
+  'LOGISTICA DE ENTRADA',
+  'LOGISTICA DE SALIDA',
+  'RETENIDAS',
+  'MIGUEL LETTE',
+  'MANTENIMIENTO',
+  'SEGURIDAD E HIGUIENE',
+  'PRODUCCION',
+  'INGENIERIA DE PROCESOS Y PROYECTOS',
+] as const;
+
 export interface Container {
   codigoISO: string;
   calle: string; // e.g. 'C-01'
@@ -14,6 +25,7 @@ export interface Container {
   nivel: number; // 1 to 5
   tipo: string;  // e.g. "40' HC", "20' DC"
   naviera: string; // e.g. 'MSC', 'Maersk'
+  sector?: string; // Sector solicitante / dueño en La Emilia
   tara?: number;
   estado: 'DEPOSITADO' | 'RETIRADO';
   fechaIngreso: string;

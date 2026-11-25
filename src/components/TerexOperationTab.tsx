@@ -12,10 +12,9 @@ import {
   Truck,
   Package,
   Plus,
-  Boxes,
   Trash2
 } from 'lucide-react';
-import { Container, PlayaConfig, MaterialItem } from '../types/container';
+import { Container, PlayaConfig, MaterialItem, SECTORES_LA_EMILIA } from '../types/container';
 import { validateIso6346 } from '../utils/iso6346';
 
 interface TerexOperationTabProps {
@@ -27,6 +26,7 @@ interface TerexOperationTabProps {
     fila: string;
     tipo: string;
     naviera: string;
+    sector?: string;
     tara?: number;
     observaciones?: string;
     operador: string;
@@ -36,6 +36,7 @@ interface TerexOperationTabProps {
   onOpenOcr: () => void;
   onNavigateToMap: () => void;
   initialCode?: string;
+  currentOperator?: string;
 }
 
 export const TerexOperationTab: React.FC<TerexOperationTabProps> = ({
@@ -45,15 +46,17 @@ export const TerexOperationTab: React.FC<TerexOperationTabProps> = ({
   onRetiro,
   onOpenOcr,
   initialCode = '',
+  currentOperator = 'TEREX-01 / Cabina',
 }) => {
   const [isoInput, setIsoInput] = useState<string>(initialCode);
   const [selectedCalle, setSelectedCalle] = useState<string>('C-01');
   const [selectedFila, setSelectedFila] = useState<string>('F-01');
   const [tipo, setTipo] = useState<string>("40' HC");
   const [naviera, setNaviera] = useState<string>('MSC');
+  const [sector, setSector] = useState<string>('LOGISTICA DE ENTRADA');
   const [tara, setTara] = useState<string>('3800');
   const [observaciones, setObservaciones] = useState<string>('');
-  const [operador] = useState<string>('TEREX-01 / Cabina');
+  const operador = currentOperator;
   const [showKeypad, setShowKeypad] = useState<boolean>(false);
 
   // Materials manifest state
@@ -106,7 +109,6 @@ export const TerexOperationTab: React.FC<TerexOperationTabProps> = ({
   const detectedContainer = activeContainers.find(
     (c) => c.codigoISO.toUpperCase() === cleanIso && c.estado === 'DEPOSITADO'
   );
-
   const isRetiroMode = !!detectedContainer;
 
   // Calculate stack occupancy for current selected calle and fila
@@ -164,6 +166,7 @@ export const TerexOperationTab: React.FC<TerexOperationTabProps> = ({
         fila: selectedFila,
         tipo,
         naviera,
+        sector,
         tara: tara ? parseInt(tara, 10) : undefined,
         observaciones,
         operador,
@@ -186,7 +189,6 @@ export const TerexOperationTab: React.FC<TerexOperationTabProps> = ({
               IDENTIFICACIÓN DE CONTENEDOR (CABINA TEREX)
             </h2>
           </div>
-
           <div className="flex items-center gap-2">
             <span
               className={`text-xs px-3 py-1 rounded-full font-mono font-bold uppercase tracking-wider ${
@@ -197,7 +199,6 @@ export const TerexOperationTab: React.FC<TerexOperationTabProps> = ({
             >
               MODO: {isRetiroMode ? 'RETIRO AUTOMÁTICO (ENCONTRADO)' : 'INGRESO A PLAYA D'}
             </span>
-
             <button
               type="button"
               onClick={() => setShowKeypad(!showKeypad)}
@@ -236,7 +237,6 @@ export const TerexOperationTab: React.FC<TerexOperationTabProps> = ({
               </button>
             )}
           </div>
-
           <button
             type="button"
             onClick={onOpenOcr}
@@ -299,7 +299,6 @@ export const TerexOperationTab: React.FC<TerexOperationTabProps> = ({
                 Cerrar
               </button>
             </div>
-
             {/* Quick prefix shortcuts */}
             <div className="flex flex-wrap gap-1.5 mb-2.5">
               {['MSKU', 'MRKU', 'CMAU', 'HLCU', 'COSU', 'ONEY', 'SUDU', 'TGHU', 'ZIMU'].map((pref) => (
@@ -313,7 +312,6 @@ export const TerexOperationTab: React.FC<TerexOperationTabProps> = ({
                 </button>
               ))}
             </div>
-
             {/* Digit keypad */}
             <div className="grid grid-cols-4 gap-2">
               {['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'].map((digit) => (
@@ -354,7 +352,7 @@ export const TerexOperationTab: React.FC<TerexOperationTabProps> = ({
             CONTENEDOR LOCALIZADO EN PLAYA D
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-[#0b1117] border border-[#233140] p-4 rounded-xl">
               <span className="text-xs text-slate-400 font-mono uppercase block mb-1">
                 CALLE OPERATIVA
@@ -363,7 +361,6 @@ export const TerexOperationTab: React.FC<TerexOperationTabProps> = ({
                 {detectedContainer.calle}
               </span>
             </div>
-
             <div className="bg-[#0b1117] border border-[#233140] p-4 rounded-xl">
               <span className="text-xs text-slate-400 font-mono uppercase block mb-1">
                 FILA ASIGNADA
@@ -372,7 +369,6 @@ export const TerexOperationTab: React.FC<TerexOperationTabProps> = ({
                 {detectedContainer.fila}
               </span>
             </div>
-
             <div className="bg-[#0b1117] border border-teal-500/40 p-4 rounded-xl">
               <span className="text-xs text-teal-400 font-mono uppercase block mb-1">
                 NIVEL DE ESTIBA
@@ -382,6 +378,14 @@ export const TerexOperationTab: React.FC<TerexOperationTabProps> = ({
               </span>
               <span className="text-[11px] text-slate-400 font-mono block mt-1">
                 {detectedContainer.nivel === 1 ? 'En piso' : `Sobre nivel ${detectedContainer.nivel - 1}`}
+              </span>
+            </div>
+            <div className="bg-[#0b1117] border border-[#233140] p-4 rounded-xl">
+              <span className="text-xs text-slate-400 font-mono uppercase block mb-1">
+                SECTOR LA EMILIA
+              </span>
+              <span className="text-sm font-mono font-bold text-amber-300 block mt-1">
+                {detectedContainer.sector || 'SIN SECTOR'}
               </span>
             </div>
           </div>
@@ -474,7 +478,6 @@ export const TerexOperationTab: React.FC<TerexOperationTabProps> = ({
                 const calleContainersCount = activeContainers.filter(
                   (c) => c.calle === calle && c.estado === 'DEPOSITADO'
                 ).length;
-
                 return (
                   <button
                     key={calle}
@@ -510,14 +513,12 @@ export const TerexOperationTab: React.FC<TerexOperationTabProps> = ({
                 CALLE ACTIVA: {selectedCalle}
               </span>
             </div>
-
             <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-5 gap-2.5">
               {Array.from({ length: config.filasPorCalle }, (_, i) => {
                 const filaNumber = i + 1;
                 const filaId = `F-${filaNumber < 10 ? '0' + filaNumber : filaNumber}`;
                 const rowContainers = activeContainers.filter(
-                  (c) =>
-                    c.calle === selectedCalle && c.fila === filaId && c.estado === 'DEPOSITADO'
+                  (c) => c.calle === selectedCalle && c.fila === filaId && c.estado === 'DEPOSITADO'
                 );
                 const height = rowContainers.length;
                 const isFull = height >= config.alturaMaxima;
@@ -577,7 +578,6 @@ export const TerexOperationTab: React.FC<TerexOperationTabProps> = ({
                   : `Fila con ${currentHeight} contenedor(es) debajo. Nunca se dejan espacios vacíos.`}
               </div>
             </div>
-
             <div className="text-right bg-[#151e27] border border-[#233140] px-5 py-3 rounded-xl min-w-[170px]">
               <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block">
                 NIVEL AUTOMÁTICO
@@ -598,7 +598,7 @@ export const TerexOperationTab: React.FC<TerexOperationTabProps> = ({
           </div>
 
           {/* Additional fast attributes */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div>
               <label className="text-xs font-mono text-slate-400 block mb-1.5 uppercase">
                 TIPO CONTENEDOR
@@ -616,7 +616,6 @@ export const TerexOperationTab: React.FC<TerexOperationTabProps> = ({
                 <option value="40' Flat Rack">40' Flat Rack</option>
               </select>
             </div>
-
             <div>
               <label className="text-xs font-mono text-slate-400 block mb-1.5 uppercase">
                 LÍNEA NAVIERA
@@ -637,7 +636,22 @@ export const TerexOperationTab: React.FC<TerexOperationTabProps> = ({
                 <option value="Otra / General">Otra / General</option>
               </select>
             </div>
-
+            <div>
+              <label className="text-xs font-mono text-amber-300 font-bold block mb-1.5 uppercase">
+                SECTOR LA EMILIA
+              </label>
+              <select
+                value={sector}
+                onChange={(e) => setSector(e.target.value)}
+                className="w-full h-12 bg-[#0b1117] border border-amber-500/40 rounded-lg px-3 text-xs font-mono text-white focus:outline-none focus:border-amber-400"
+              >
+                {SECTORES_LA_EMILIA.map((sec) => (
+                  <option key={sec} value={sec}>
+                    {sec}
+                  </option>
+                ))}
+              </select>
+            </div>
             <div>
               <label className="text-xs font-mono text-slate-400 block mb-1.5 uppercase">
                 TARA ESTIMADA (KG)
@@ -708,164 +722,6 @@ export const TerexOperationTab: React.FC<TerexOperationTabProps> = ({
                     className="w-full h-11 bg-[#0b1117] border border-[#233140] rounded px-3 text-sm font-mono text-white focus:outline-none focus:border-teal-400"
                   />
                 </div>
-
                 <div className="sm:col-span-2">
                   <label className="text-[10px] font-mono text-slate-400 block mb-1 uppercase">
-                    CÓDIGO / SKU
-                  </label>
-                  <input
-                    type="text"
-                    value={matCodigo}
-                    onChange={(e) => setMatCodigo(e.target.value.toUpperCase())}
-                    placeholder="Ej: SKU-01"
-                    className="w-full h-11 bg-[#0b1117] border border-[#233140] rounded px-3 text-sm font-mono text-white uppercase focus:outline-none focus:border-teal-400"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="text-[10px] font-mono text-slate-400 block mb-1 uppercase">
-                    CANTIDAD
-                  </label>
-                  <input
-                    type="number"
-                    value={matCant}
-                    onChange={(e) => setMatCant(Math.max(1, parseInt(e.target.value, 10) || 1))}
-                    className="w-full h-11 bg-[#0b1117] border border-[#233140] rounded px-3 text-sm font-mono text-white focus:outline-none focus:border-teal-400 text-center font-bold"
-                  />
-                </div>
-
-                <div className="sm:col-span-3">
-                  <label className="text-[10px] font-mono text-slate-400 block mb-1 uppercase">
-                    UNIDAD
-                  </label>
-                  <select
-                    value={matUnidad}
-                    onChange={(e) => setMatUnidad(e.target.value)}
-                    className="w-full h-11 bg-[#0b1117] border border-[#233140] rounded px-2 text-xs font-mono text-white focus:outline-none focus:border-teal-400"
-                  >
-                    <option value="BULTOS">BULTOS</option>
-                    <option value="PALLETS">PALLETS</option>
-                    <option value="UNID">UNIDADES</option>
-                    <option value="CAJAS">CAJAS</option>
-                    <option value="TAMBORES">TAMBORES</option>
-                    <option value="KG">KILOS (KG)</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Quick Stepper buttons and Add button */}
-              <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-[#233140]/60">
-                <div className="flex items-center gap-1 text-xs font-mono text-slate-400">
-                  <span>CANTIDAD:</span>
-                  {[+1, +10, +50, +100].map((step) => (
-                    <button
-                      key={step}
-                      type="button"
-                      onClick={() => setMatCant((prev) => Math.max(1, prev + step))}
-                      className="px-2 py-0.5 bg-[#0b1117] hover:bg-[#202d3a] border border-[#233140] rounded text-teal-300 font-bold"
-                    >
-                      +{step}
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => setMatCant(1)}
-                    className="px-2 py-0.5 bg-[#0b1117] text-slate-400 border border-[#233140] rounded"
-                  >
-                    1
-                  </button>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleAddMaterial}
-                  className="h-10 px-4 bg-teal-500 hover:bg-teal-400 text-black font-mono font-bold text-xs rounded-lg flex items-center gap-1.5 shadow-md active:scale-95 transition-all"
-                >
-                  <Plus className="w-4 h-4" />
-                  AGREGAR AL CONTENEDOR
-                </button>
-              </div>
-            </div>
-
-            {/* List of currently added materials */}
-            {materiales.length > 0 ? (
-              <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                {materiales.map((item, idx) => (
-                  <div
-                    key={item.id}
-                    className="bg-[#151e27] border border-[#233140] px-3 py-2 rounded-lg flex items-center justify-between text-xs font-mono"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-teal-400 font-bold">#{idx + 1}</span>
-                      <span className="text-white font-bold">{item.descripcion}</span>
-                      {item.codigo && (
-                        <span className="text-[10px] text-slate-400 bg-black/40 px-1.5 py-0.5 rounded">
-                          [{item.codigo}]
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-bold text-teal-300 bg-teal-950/60 px-2 py-0.5 rounded border border-teal-500/30">
-                        {item.cantidad} {item.unidad}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveMaterial(item.id)}
-                        className="text-red-400 hover:text-red-300 p-1 hover:bg-red-500/10 rounded"
-                        title="Quitar ítem"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-3 text-xs text-slate-500 font-mono italic">
-                Ningún material cargado aún. Puede usar los botones rápidos arriba o ingresar ítems manualmente.
-              </div>
-            )}
-          </div>
-
-          <div>
-            <label className="text-xs font-mono text-slate-400 block mb-1.5 uppercase">
-              OBSERVACIONES / ESTADO FÍSICO (OPCIONAL)
-            </label>
-            <input
-              type="text"
-              value={observaciones}
-              onChange={(e) => setObservaciones(e.target.value)}
-              placeholder="Ej: Sin daños visibles, precinto en regla..."
-              className="w-full h-12 bg-[#0b1117] border border-[#233140] rounded-lg px-4 text-sm font-mono text-white focus:outline-none focus:border-teal-400"
-            />
-          </div>
-
-          {/* Giant Touch Button for Ingreso (min 56px) */}
-          <button
-            type="button"
-            disabled={!cleanIso || isRowFull}
-            onClick={handleSubmitAction}
-            className={`w-full min-h-[58px] rounded-xl font-mono font-bold text-base md:text-lg flex items-center justify-center gap-3 transition-all ${
-              !cleanIso || isRowFull
-                ? 'bg-[#1e293b] text-slate-500 border border-[#233140] cursor-not-allowed'
-                : 'bg-teal-500 hover:bg-teal-400 active:bg-teal-600 text-slate-950 shadow-xl shadow-teal-500/25 active:scale-[0.99]'
-            }`}
-          >
-            <ArrowDown className="w-6 h-6" />
-            {isRowFull
-              ? 'FILA COMPLETA (5/5) - SELECCIONAR OTRA FILA'
-              : !cleanIso
-              ? 'INGRESE CÓDIGO ISO PARA CONFIRMAR INGRESO'
-              : `CONFIRMAR INGRESO EN ${selectedCalle} / ${selectedFila} (NIVEL ${assignedLevel})`}
-          </button>
-        </div>
-      )}
-
-      {/* Security notice */}
-      <div className="text-center font-mono text-xs text-slate-500 flex items-center justify-center gap-2">
-        <ShieldCheck className="w-4 h-4 text-teal-400" />
-        Sistema de bloqueo de concurrencia (LockService) activo · Operaciones seguras en cabina
-      </div>
-    </div>
-  );
-};
+                    CÓDIGO /
