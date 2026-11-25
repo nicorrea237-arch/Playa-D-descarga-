@@ -239,7 +239,21 @@ export function App() {
     try {
       if (gasUrl) {
         const separator = gasUrl.includes('?') ? '&' : '?';
-        const response = await fetch(`${gasUrl}${separator}action=verifyUser&email=${encodeURIComponent(normalizedEmail)}`); const result = await response.json(); if (result && result.authorized === false) { setLoginError(result.error \vert{}\vert{} 'Usuario @laemilia.com.ar no habilitado en la planilla.'); setIsVerifyingUser(false); return; } } localStorage.setItem(STORAGE_KEY_USER, normalizedEmail); setAuthorizedUser(normalizedEmail); showToast(`Bienvenido ${normalizedEmail}`, 'success');
+        const response = await fetch(
+          `${gasUrl}${separator}action=verifyUser&email=${encodeURIComponent(normalizedEmail)}`
+        );
+        const result = await response.json();
+        if (result && result.authorized === false) {
+          setLoginError(
+            result.error || 'Usuario @laemilia.com.ar no habilitado en la planilla.'
+          );
+          setIsVerifyingUser(false);
+          return;
+        }
+      }
+      localStorage.setItem(STORAGE_KEY_USER, normalizedEmail);
+      setAuthorizedUser(normalizedEmail);
+      showToast(`Bienvenido ${normalizedEmail}`, 'success');
     } catch {
       localStorage.setItem(STORAGE_KEY_USER, normalizedEmail);
       setAuthorizedUser(normalizedEmail);
@@ -307,7 +321,7 @@ export function App() {
     );
     if (existingActive) {
       showToast(
-        `El contenedor ${cleanIso} ya está DEPOSITADO en ${existingActive.calle} / ${existingActive.fila} (Nivel${existingActive.nivel})`,
+        `El contenedor ${cleanIso} ya está DEPOSITADO en ${existingActive.calle} / ${existingActive.fila} (Nivel ${existingActive.nivel})`,
         'error'
       );
       return;
@@ -318,12 +332,59 @@ export function App() {
     const nextLevel = rowStack.length + 1;
     if (nextLevel > config.alturaMaxima) {
       showToast(
-        `La fila ${data.fila} en calle${data.calle} está llena (máximo ${config.alturaMaxima} niveles)`, 'error' ); return; } const nowIso = new Date().toISOString(); const newContainer: Container = { codigoISO: cleanIso, calle: data.calle, fila: data.fila, nivel: nextLevel, tipo: data.tipo, naviera: data.naviera, sector: data.sector \vert{}\vert{} 'LOGISTICA DE ENTRADA', tara: data.tara, estado: 'DEPOSITADO', fechaIngreso: nowIso, observaciones: data.observaciones, operador: data.operador \vert{}\vert{} authorizedUser \vert{}\vert{} config.maquinaId, materiales: data.materiales \vert{}\vert{} [], }; const newMovement: MovementRecord = { id: `MOV-${Date.now()}-${Math.floor(Math.random() * 1000)}`, tipo: 'INGRESO', codigoISO: cleanIso, calle: data.calle, fila: data.fila, nivelOrigen: null, nivelDestino: nextLevel, timestamp: nowIso, operador: newContainer.operador, motivo: data.sector ? `Sector: ${data.sector}` : data.observaciones || 'Ingreso operativo a Playa D',
+        `La fila ${data.fila} en calle ${data.calle} está llena (máximo ${config.alturaMaxima} niveles)`,
+        'error'
+      );
+      return;
+    }
+    const nowIso = new Date().toISOString();
+    const newContainer: Container = {
+      codigoISO: cleanIso,
+      calle: data.calle,
+      fila: data.fila,
+      nivel: nextLevel,
+      tipo: data.tipo,
+      naviera: data.naviera,
+      sector: data.sector || 'LOGISTICA DE ENTRADA',
+      tara: data.tara,
+      estado: 'DEPOSITADO',
+      fechaIngreso: nowIso,
+      observaciones: data.observaciones,
+      operador: data.operador || authorizedUser || config.maquinaId,
+      materiales: data.materiales || [],
+    };
+    const newMovement: MovementRecord = {
+      id: `MOV-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      tipo: 'INGRESO',
+      codigoISO: cleanIso,
+      calle: data.calle,
+      fila: data.fila,
+      nivelOrigen: null,
+      nivelDestino: nextLevel,
+      timestamp: nowIso,
+      operador: newContainer.operador,
+      motivo: data.sector ? `Sector: ${data.sector}` : data.observaciones || 'Ingreso operativo a Playa D',
     };
     setContainers((prev) => [...prev, newContainer]);
     setMovements((prev) => [newMovement, ...prev]);
     showToast(
-      `INGRESO: ${cleanIso} en${data.calle} · ${data.fila} · NIVEL ${nextLevel} (${newContainer.sector})`, 'success' ); syncWithGas({ action: 'ingreso', container: newContainer, movement: newMovement, }); };  const handleRetiro = (codigoISO: string, motivo?: string) => { const cleanIso = codigoISO.trim().toUpperCase(); const target = containers.find( (c) => c.codigoISO.toUpperCase() === cleanIso && c.estado === 'DEPOSITADO' ); if (!target) { showToast(`Contenedor ${cleanIso} no encontrado como activo en Playa D`, 'error');
+      `INGRESO: ${cleanIso} en ${data.calle} · ${data.fila} · NIVEL ${nextLevel} (${newContainer.sector})`,
+      'success'
+    );
+    syncWithGas({
+      action: 'ingreso',
+      container: newContainer,
+      movement: newMovement,
+    });
+  };
+
+  const handleRetiro = (codigoISO: string, motivo?: string) => {
+    const cleanIso = codigoISO.trim().toUpperCase();
+    const target = containers.find(
+      (c) => c.codigoISO.toUpperCase() === cleanIso && c.estado === 'DEPOSITADO'
+    );
+    if (!target) {
+      showToast(`Contenedor ${cleanIso} no encontrado como activo en Playa D`, 'error');
       return;
     }
     const nowIso = new Date().toISOString();
@@ -344,4 +405,85 @@ export function App() {
       nivelDestino: sup.nivel - 1,
       timestamp: nowIso,
       operador: authorizedUser || config.maquinaId,
-      motivo: `Reacomodamiento
+      motivo: `Reacomodamiento por gravedad tras retiro de ${cleanIso}`,
+    }));
+    const retiroMovement: MovementRecord = {
+      id: `MOV-RET-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      tipo: 'RETIRO',
+      codigoISO: cleanIso,
+      calle: target.calle,
+      fila: target.fila,
+      nivelOrigen: target.nivel,
+      nivelDestino: null,
+      timestamp: nowIso,
+      operador: authorizedUser || config.maquinaId,
+      motivo: motivo || 'Retiro operativo desde Playa D',
+    };
+    setContainers((prev) =>
+      prev.map((c) => {
+        if (c.codigoISO.toUpperCase() === cleanIso && c.estado === 'DEPOSITADO') {
+          return {
+            ...c,
+            estado: 'RETIRADO',
+            fechaRetiro: nowIso,
+          };
+        }
+        if (
+          c.estado === 'DEPOSITADO' &&
+          c.calle === target.calle &&
+          c.fila === target.fila &&
+          c.nivel > target.nivel
+        ) {
+          return {
+            ...c,
+            nivel: c.nivel - 1,
+          };
+        }
+        return c;
+      })
+    );
+    setMovements((prev) => [retiroMovement, ...dropMovements, ...prev]);
+    const dropText =
+      superiorContainers.length > 0
+        ? ` · ${superiorContainers.length} cont. reacomodado(s) 1 nivel abajo`
+        : '';
+    showToast(
+      `RETIRO: ${cleanIso} retirado de ${target.calle} · ${target.fila} (Nivel ${target.nivel})${dropText}`,
+      'info'
+    );
+    syncWithGas({
+      action: 'retiro',
+      codigoISO: cleanIso,
+      fechaRetiro: nowIso,
+      movement: retiroMovement,
+      dropMovements,
+    });
+  };
+
+  if (!authorizedUser) {
+    return (
+      <div className="min-h-screen bg-[#0b1117] text-slate-100 flex items-center justify-center p-4">
+        <div className="w-full max-w-md bg-[#151e27] border-2 border-[#233140] rounded-2xl p-6 md:p-8 shadow-2xl space-y-6">
+          <div className="flex flex-col items-center text-center space-y-3">
+            <img
+              src="LaEmilia_Logosnuevos2023_Mesa de trabajo 1.jpg"
+              alt="Logo La Emilia"
+              className="h-14 w-auto object-contain rounded-lg bg-white/95 px-3 py-1.5"
+            />
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold text-teal-300 bg-teal-950/60 border border-teal-500/40 px-3 py-1 rounded-full">
+              <Lock className="w-3.5 h-3.5" /> ACCESO CORPORATIVO PLAYA D
+            </div>
+            <h1 className="font-mono font-bold text-xl text-white">
+              INGRESO EXCLUSIVO @LAEMILIA.COM.AR
+            </h1>
+            <p className="text-xs text-slate-400 font-mono leading-relaxed">
+              Ingrese su correo institucional de La Emilia para operar la grúa Terex, consultar sectores y registrar movimientos.
+            </p>
+          </div>
+          <form onSubmit={handleLoginSubmit} className="space-y-4">
+            <div>
+              <label className="text-xs font-mono font-bold text-slate-300 block mb-1.5 uppercase">
+                CORREO CORPORATIVO LA EMILIA
+              </label>
+              <div className="relative">
+                <Mail className="w-4 h-4 text-teal-400 absolute left-3.5 top-1/2 -translate-y-1/
