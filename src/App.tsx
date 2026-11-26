@@ -10,8 +10,9 @@ import {
   FileCode
 } from 'lucide-react';
 
-import { Container, MovementRecord, PlayaConfig } from './types/container';
+import { Container, MovementRecord, PlayaConfig, MaterialItem } from './types/container';
 import { StorageService } from './services/storageService';
+import { GasSyncService, GasConnectionStatus } from './services/gasSyncService';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Header } from './components/Header';
 import { TerexOperationTab } from './components/TerexOperationTab';
@@ -36,6 +37,12 @@ function PlayaDApp() {
   const [containers, setContainers] = useState<Container[]>([]);
   const [movements, setMovements] = useState<MovementRecord[]>([]);
   const [config, setConfig] = useState<PlayaConfig>(StorageService.getConfig());
+
+  // Google Apps Script sync states
+  const [gasUrl, setGasUrl] = useState<string>(() => GasSyncService.getGasUrl());
+  const [gasStatus, setGasStatus] = useState<GasConnectionStatus>('syncing');
+  const [gasStatusMessage, setGasStatusMessage] = useState<string>('');
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     try {
@@ -86,23 +93,70 @@ function PlayaDApp() {
     }, 4500);
   }, []);
 
-  const refreshState = useCallback(() => {
+  const refreshStateFromLocal = useCallback(() => {
     const state = StorageService.getPlayaState();
     setContainers(state.containers);
     setMovements(state.movements);
     setConfig(state.config);
   }, []);
 
+  const applyRemoteState = useCallback(
+    (remoteState: { containers: Container[]; movements: MovementRecord[]; config?: Partial<PlayaConfig> }) => {
+      const synced = StorageService.replaceState(
+        remoteState.containers,
+        remoteState.movements,
+        remoteState.config
+      );
+      setContainers(synced.containers);
+      setMovements(synced.movements);
+      setConfig(synced.config);
+    },
+    []
+  );
+
+  // Sync full state from Google Apps Script
+  const syncFromGas = useCallback(
+    async (opts?: { showSuccessToast?: boolean; showFailureToast?: boolean; customUrl?: string }) => {
+      setIsSyncing(true);
+      setGasStatus('syncing');
+      const res = await GasSyncService.fetchEstado(opts?.customUrl);
+      setIsSyncing(false);
+
+      if (res.ok && res.state) {
+        applyRemoteState(res.state);
+        setGasStatus('connected');
+        setGasStatusMessage('Sincronizado correctamente con Google Sheets.');
+        if (opts?.showSuccessToast) {
+          addToast(
+            'success',
+            'GOOGLE SHEETS SINCRONIZADO',
+            `${res.state.containers.filter((c) => c.estado === 'DEPOSITADO').length} contenedores activos en Playa D.`
+          );
+        }
+        return true;
+      }
+
+      setGasStatus(res.status);
+      setGasStatusMessage(res.errorMessage || 'No se pudo conectar con Google Sheets.');
+      if (opts?.showFailureToast) {
+        addToast('warning', 'Sin conexión directa con Sheets', res.errorMessage);
+      }
+      return false;
+    },
+    [addToast, applyRemoteState]
+  );
+
   useEffect(() => {
-    refreshState();
-  }, [refreshState]);
+    refreshStateFromLocal();
+    void syncFromGas({ showSuccessToast: false, showFailureToast: false });
+  }, [refreshStateFromLocal, syncFromGas]);
 
   const activeContainers = containers.filter((c) => c.estado === 'DEPOSITADO');
   const totalOccupied = activeContainers.length;
   const maxCapacity = config.calles.length * config.filasPorCalle * config.alturaMaxima; // 4 * 15 * 5 = 300
 
-  // 1. Ingreso Handler
-  const handleIngreso = (data: {
+  // 1. Ingreso Handler (local optimistic + GAS Google Sheets sync)
+  const handleIngreso = async (data: {
     codigoISO: string;
     calle: string;
     fila: string;
@@ -112,26 +166,45 @@ function PlayaDApp() {
     observaciones?: string;
     operador: string;
     sectores?: string[];
-    materiales?: import('./types/container').MaterialItem[];
+    materiales?: MaterialItem[];
   }) => {
     try {
       const result = StorageService.registrarIngreso(data);
-      refreshState();
+      refreshStateFromLocal();
       addToast(
         'success',
         `INGRESADO: ${result.container.codigoISO}`,
         `Ubicado en ${result.container.calle} / ${result.container.fila} - Nivel ${result.container.nivel}`
       );
+
+      setIsSyncing(true);
+      const gasRes = await GasSyncService.syncIngreso(data);
+      setIsSyncing(false);
+
+      if (gasRes.ok) {
+        setGasStatus('connected');
+        setGasStatusMessage('Último ingreso sincronizado con Google Sheets.');
+        if (gasRes.state) {
+          applyRemoteState(gasRes.state);
+        }
+        addToast('success', `SHEETS ACTUALIZADO: ${result.container.codigoISO}`, 'Ingreso guardado en CONTENEDORES y MOVIMIENTOS.');
+      } else {
+        setGasStatus(gasRes.status);
+        setGasStatusMessage(gasRes.errorMessage || '');
+        if (gasRes.status === 'error') {
+          addToast('warning', 'Guardado local (error en Sheets)', gasRes.errorMessage);
+        }
+      }
     } catch (err: any) {
       addToast('error', 'Error en maniobra de ingreso', err.message);
     }
   };
 
-  // 2. Retiro Handler with Gravity Restacking
-  const handleRetiro = (codigoISO: string, motivo?: string) => {
+  // 2. Retiro Handler with Gravity Restacking (local optimistic + GAS Google Sheets sync)
+  const handleRetiro = async (codigoISO: string, motivo?: string) => {
     try {
       const result = StorageService.registrarRetiro(codigoISO, motivo);
-      refreshState();
+      refreshStateFromLocal();
 
       const reacomodadosCount = result.reacomodados.length;
       if (reacomodadosCount > 0) {
@@ -148,8 +221,26 @@ function PlayaDApp() {
         );
       }
 
-      // Close modal if open
       setSelectedStackRow(null);
+
+      setIsSyncing(true);
+      const gasRes = await GasSyncService.syncRetiro(codigoISO, motivo);
+      setIsSyncing(false);
+
+      if (gasRes.ok) {
+        setGasStatus('connected');
+        setGasStatusMessage('Último retiro y reacomodamiento sincronizados con Sheets.');
+        if (gasRes.state) {
+          applyRemoteState(gasRes.state);
+        }
+        addToast('success', `SHEETS ACTUALIZADO: ${result.retirado.codigoISO}`, 'Baja y reacomodamientos registrados en Google Sheets.');
+      } else {
+        setGasStatus(gasRes.status);
+        setGasStatusMessage(gasRes.errorMessage || '');
+        if (gasRes.status === 'error') {
+          addToast('warning', 'Retiro local (error en Sheets)', gasRes.errorMessage);
+        }
+      }
     } catch (err: any) {
       addToast('error', 'Error en retiro de contenedor', err.message);
     }
@@ -163,11 +254,24 @@ function PlayaDApp() {
   };
 
   // 4. Reset Demo
-  const handleResetDemo = () => {
+  const handleResetDemo = async () => {
     if (window.confirm('¿Desea restablecer los contenedores de muestra en Playa D?')) {
-      StorageService.resetToDefaultFleet();
-      refreshState();
+      const resetData = StorageService.resetToDefaultFleet();
+      refreshStateFromLocal();
       addToast('success', 'Flota demo restablecida', 'Playa D inicializada con estibas de muestra.');
+
+      setIsSyncing(true);
+      const gasRes = await GasSyncService.syncResetDemo(resetData.containers, resetData.movements);
+      setIsSyncing(false);
+
+      if (gasRes.ok) {
+        setGasStatus('connected');
+        setGasStatusMessage('Flota de muestra sincronizada en Google Sheets.');
+        if (gasRes.state) applyRemoteState(gasRes.state);
+      } else {
+        setGasStatus(gasRes.status);
+        setGasStatusMessage(gasRes.errorMessage || '');
+      }
     }
   };
 
@@ -178,11 +282,24 @@ function PlayaDApp() {
   };
 
   // 6. Clear History
-  const handleClearHistory = () => {
-    if (window.confirm('¿Confirma borrar el historial de auditoría local?')) {
-      localStorage.setItem('terex_playa_d_movimientos_v1', JSON.stringify([]));
-      refreshState();
+  const handleClearHistory = async () => {
+    if (window.confirm('¿Confirma borrar el historial de auditoría?')) {
+      StorageService.clearHistory();
+      refreshStateFromLocal();
       addToast('warning', 'Historial limpiado');
+
+      setIsSyncing(true);
+      const gasRes = await GasSyncService.syncClearHistory();
+      setIsSyncing(false);
+
+      if (gasRes.ok) {
+        setGasStatus('connected');
+        setGasStatusMessage('Historial vaciado en Google Sheets.');
+        if (gasRes.state) applyRemoteState(gasRes.state);
+      } else {
+        setGasStatus(gasRes.status);
+        setGasStatusMessage(gasRes.errorMessage || '');
+      }
     }
   };
 
@@ -198,6 +315,19 @@ function PlayaDApp() {
     );
   };
 
+  // 8. Save & test GAS URL from modal
+  const handleSaveAndTestGasUrl = async (newUrl: string) => {
+    const saved = GasSyncService.setGasUrl(newUrl);
+    setGasUrl(saved);
+    await syncFromGas({ showSuccessToast: true, showFailureToast: true, customUrl: saved });
+  };
+
+  const handleResetDefaultGasUrl = () => {
+    const defaultUrl = GasSyncService.resetGasUrl();
+    setGasUrl(defaultUrl);
+    void syncFromGas({ showSuccessToast: true, showFailureToast: true, customUrl: defaultUrl });
+  };
+
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-[#0b1117] text-slate-900 dark:text-[#f1f5f9] flex flex-col font-sans selection:bg-teal-500 selection:text-black transition-colors">
       {/* INDUSTRIAL HEADER */}
@@ -205,9 +335,13 @@ function PlayaDApp() {
         totalOccupied={totalOccupied}
         maxCapacity={maxCapacity}
         theme={theme}
+        gasStatus={gasStatus}
+        gasStatusMessage={gasStatusMessage}
+        isSyncing={isSyncing}
+        onSyncNow={() => void syncFromGas({ showSuccessToast: true, showFailureToast: true })}
         onToggleTheme={toggleTheme}
         onOpenGasModal={() => setIsGasModalOpen(true)}
-        onResetDemo={handleResetDemo}
+        onResetDemo={() => void handleResetDemo()}
       />
 
       {/* 4 MAIN TABS NAVIGATION (Touch min 52px high) */}
@@ -267,8 +401,8 @@ function PlayaDApp() {
           <TerexOperationTab
             config={config}
             activeContainers={activeContainers}
-            onIngreso={handleIngreso}
-            onRetiro={handleRetiro}
+            onIngreso={(data) => void handleIngreso(data)}
+            onRetiro={(iso, motivo) => void handleRetiro(iso, motivo)}
             onOpenOcr={() => setIsOcrOpen(true)}
             onNavigateToMap={() => setActiveTab('mapa')}
             initialCode={prefilledCode}
@@ -295,7 +429,7 @@ function PlayaDApp() {
               setHighlightedContainerCode(null);
               setActiveTab('mapa');
             }}
-            onWithdraw={handleRetiro}
+            onWithdraw={(iso) => void handleRetiro(iso)}
             onSelectForOperation={handleSelectForOperation}
             onLocateOnMap={handleLocateOnMap}
           />
@@ -304,7 +438,7 @@ function PlayaDApp() {
         {activeTab === 'historial' && (
           <HistoryTab
             movements={movements}
-            onClearHistory={handleClearHistory}
+            onClearHistory={() => void handleClearHistory()}
           />
         )}
       </main>
@@ -327,7 +461,7 @@ function PlayaDApp() {
             className="text-teal-700 dark:text-teal-400 hover:text-teal-900 dark:hover:text-teal-300 underline flex items-center gap-1"
           >
             <FileCode className="w-3.5 h-3.5" />
-            Exportar Code.gs &amp; index.html
+            Conexión Sheets &amp; Code.gs
           </button>
           <span className="text-slate-300 dark:text-slate-600">|</span>
           <span>TERMINAL PLAYA D</span>
@@ -345,7 +479,7 @@ function PlayaDApp() {
           calle={selectedStackRow.calle}
           fila={selectedStackRow.fila}
           containers={containers}
-          onWithdraw={handleRetiro}
+          onWithdraw={(iso) => void handleRetiro(iso)}
           highlightedCode={highlightedContainerCode}
         />
       )}
@@ -357,10 +491,16 @@ function PlayaDApp() {
         onScanComplete={handleScanComplete}
       />
 
-      {/* GOOGLE APPS SCRIPT CODE VIEWER / EXPORT MODAL */}
+      {/* GOOGLE APPS SCRIPT CONNECTION & EXPORT MODAL */}
       <GasExportModal
         isOpen={isGasModalOpen}
         onClose={() => setIsGasModalOpen(false)}
+        gasUrl={gasUrl}
+        gasStatus={gasStatus}
+        gasStatusMessage={gasStatusMessage}
+        isSyncing={isSyncing}
+        onSaveAndTestUrl={handleSaveAndTestGasUrl}
+        onResetDefaultUrl={handleResetDefaultGasUrl}
       />
 
       {/* FLOATING TOAST SYSTEM */}

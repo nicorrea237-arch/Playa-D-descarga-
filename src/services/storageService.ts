@@ -395,12 +395,45 @@ export class StorageService {
     };
   }
 
-  public static resetToDefaultFleet(): void {
+  public static replaceState(
+    containers: Container[],
+    movements: MovementRecord[],
+    config?: Partial<PlayaConfig>
+  ): {
+    containers: Container[];
+    activeContainers: Container[];
+    movements: MovementRecord[];
+    config: PlayaConfig;
+  } {
+    const mergedConfig: PlayaConfig = config ? { ...this.getConfig(), ...config } : this.getConfig();
+    localStorage.setItem(STORAGE_KEY_CONTAINERS, JSON.stringify(containers));
+    localStorage.setItem(STORAGE_KEY_MOVEMENTS, JSON.stringify(movements));
+    if (config) {
+      localStorage.setItem(STORAGE_KEY_CONFIG, JSON.stringify(mergedConfig));
+    }
+    return {
+      containers,
+      activeContainers: containers.filter((c) => c.estado === 'DEPOSITADO'),
+      movements,
+      config: mergedConfig,
+    };
+  }
+
+  public static clearHistory(): void {
+    localStorage.setItem(STORAGE_KEY_MOVEMENTS, JSON.stringify([]));
+  }
+
+  public static resetToDefaultFleet(): {
+    containers: Container[];
+    movements: MovementRecord[];
+    config: PlayaConfig;
+  } {
     const fleet = generateInitialFleet();
     const movements = generateInitialMovements(fleet);
     localStorage.setItem(STORAGE_KEY_CONTAINERS, JSON.stringify(fleet));
     localStorage.setItem(STORAGE_KEY_MOVEMENTS, JSON.stringify(movements));
     localStorage.setItem(STORAGE_KEY_CONFIG, JSON.stringify(DEFAULT_CONFIG));
+    return { containers: fleet, movements, config: DEFAULT_CONFIG };
   }
 
   public static clearAll(): void {

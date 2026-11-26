@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Layers, FileCode, RotateCcw, Sun, Moon } from 'lucide-react';
+import { Clock, Layers, FileCode, RotateCcw, Sun, Moon, RefreshCw, Cloud, CloudOff, AlertTriangle } from 'lucide-react';
 import { LaEmiliaLogo } from './LaEmiliaLogo';
+import { GasConnectionStatus } from '../services/gasSyncService';
 
 interface HeaderProps {
   totalOccupied: number;
   maxCapacity: number;
   theme: 'dark' | 'light';
+  gasStatus: GasConnectionStatus;
+  gasStatusMessage?: string;
+  isSyncing: boolean;
+  onSyncNow: () => void;
   onToggleTheme: () => void;
   onOpenGasModal: () => void;
   onResetDemo: () => void;
@@ -15,6 +20,10 @@ export const Header: React.FC<HeaderProps> = ({
   totalOccupied,
   maxCapacity,
   theme,
+  gasStatus,
+  gasStatusMessage,
+  isSyncing,
+  onSyncNow,
   onToggleTheme,
   onOpenGasModal,
   onResetDemo,
@@ -37,8 +46,43 @@ export const Header: React.FC<HeaderProps> = ({
     return () => clearInterval(interval);
   }, []);
 
-  const occupancyPercent = ((totalOccupied / maxCapacity) * 100).toFixed(1);
+  const occupancyPercent = maxCapacity > 0 ? ((totalOccupied / maxCapacity) * 100).toFixed(1) : '0.0';
   const isDark = theme === 'dark';
+
+  const getSyncBadge = () => {
+    if (isSyncing || gasStatus === 'syncing') {
+      return {
+        label: 'SINCRONIZANDO...',
+        classes:
+          'bg-teal-50 dark:bg-teal-500/15 text-teal-800 dark:text-teal-300 border-teal-300 dark:border-teal-500/40',
+        icon: <RefreshCw className="w-3.5 h-3.5 animate-spin text-teal-600 dark:text-teal-400 shrink-0" />,
+      };
+    }
+    if (gasStatus === 'connected') {
+      return {
+        label: 'SHEETS CONECTADO',
+        classes:
+          'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-500/40',
+        icon: <Cloud className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />,
+      };
+    }
+    if (gasStatus === 'auth_required' || gasStatus === 'script_outdated') {
+      return {
+        label: 'CONFIGURAR GAS',
+        classes:
+          'bg-amber-50 dark:bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-500/40',
+        icon: <AlertTriangle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />,
+      };
+    }
+    return {
+      label: 'MODO LOCAL',
+      classes:
+        'bg-slate-100 dark:bg-[#151e27] text-slate-700 dark:text-slate-300 border-slate-300 dark:border-[#233140]',
+      icon: <CloudOff className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" />,
+    };
+  };
+
+  const syncBadge = getSyncBadge();
 
   return (
     <header className="bg-white dark:bg-[#0f1722] border-b-2 border-slate-200 dark:border-[#233140] px-4 py-3 md:px-6 flex flex-wrap items-center justify-between gap-3 transition-colors">
@@ -66,6 +110,21 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Center / Right Metrics & Quick Actions */}
       <div className="flex flex-wrap items-center gap-2 md:gap-2.5 text-xs font-mono">
+        {/* Google Sheets Sync Status + Trigger */}
+        <button
+          type="button"
+          onClick={gasStatus === 'auth_required' || gasStatus === 'script_outdated' ? onOpenGasModal : onSyncNow}
+          disabled={isSyncing}
+          className={`h-10 px-3 border rounded-lg font-bold flex items-center gap-1.5 transition-all active:scale-95 whitespace-nowrap shrink-0 ${syncBadge.classes}`}
+          title={
+            gasStatusMessage ||
+            'Sincronizar ahora con Google Sheets (Apps Script)'
+          }
+        >
+          {syncBadge.icon}
+          <span>{syncBadge.label}</span>
+        </button>
+
         {/* Day / Night Mode Toggle */}
         <button
           type="button"
@@ -108,12 +167,12 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* GAS Exporter Button */}
+        {/* GAS Connection & Exporter Button */}
         <button
           type="button"
           onClick={onOpenGasModal}
           className="h-10 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-[#1e293b] dark:hover:bg-[#334155] text-teal-800 dark:text-teal-300 border border-teal-500/40 dark:border-teal-500/30 hover:border-teal-600 dark:hover:border-teal-400 rounded-lg font-bold flex items-center gap-1.5 transition-all shadow-sm active:scale-95 whitespace-nowrap shrink-0"
-          title="Ver y exportar scripts listos para Google Sheets (Code.gs e index.html)"
+          title="Configurar URL de Google Apps Script y exportar Code.gs / index.html"
         >
           <FileCode className="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" />
           <span className="hidden sm:inline">GOOGLE APPS SCRIPT</span>
